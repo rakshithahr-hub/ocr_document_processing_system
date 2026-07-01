@@ -1,0 +1,248 @@
+
+--- Page 1 ---
+PROJECT REPORT: OCR EVALUATION SYSTEM
+1. Introduction
+Optical Character Recognition (OCR) 15 a technology that converts scanned images of text
+into machine-readable text. It is widely used in document digitization, automation systems,
+and government record management.
+The accuracy of OCR systems depends on image quality, font style, and layout complexity.
+2. Objective
+The main objectives of this project are:
+
+e To evaluate different OCR models
+
+e To compare extracted text with ground truth
+
+e To calculate accuracy using CER and WER metrics
+
+e To analyze performance on structured documents
+3. Dataset Details
+The dataset used for evaluation consists of scanned documents created from Word files.
+Total documents: 5
+Language: English
+Resolution: 300 DPI
+Format: PDF (scanned images)
+1೩೧470 tage i score
+Rakshitha 220
+Radhika 2000 9H
+೨. Key Observations
+
+1. OCR performance decreases when tables are present.
+
+2. Small font sizes reduce accuracy.
+
+
+--- Page 2 ---
+3. Noise in scanned images affects character recognition.
+4. Structured text improves model performance.
+6. Mathematical Representation
+OCR accuracy is evaluated using the following formula:
+CER represents character-level errors, while WER represents word-level errors.
+7. Sample Numbers for Testing
+Random numeric data included 1n the document:
+e Invoice Number: 458921
+e Date: 05/05/2026
+e Amount: 12,589.75
+e Reference Code: OCR-TEST-2026
+8. Conclusion
+OCR systems perform well on clean printed documents but struggle with tables and complex
+layouts. Proper preprocessing significantly improves accuracy.
+PROJECT REPORT: OCR EVALUATION SYSTEM
+1. Introduction
+Optical Character Recognition (OCR) 15 a technology that converts scanned images of text
+into machine-readable text. It is widely used in document digitization, automation systems,
+and government record management.
+The accuracy of OCR systems depends on image quality, font style, and layout complexity.
+2. Objective
+The main objectives of this project are:
+
+
+--- Page 3 ---
+e To evaluate different OCR models
+e Tocompare extracted text with ground truth
+e Tocalculate accuracy using CER and WER metrics
+e To analyze performance on structured documents
+3. Dataset Details
+The dataset used for evaluation consists of scanned documents created from Word files.
+Total documents: 5
+Language: English
+Resolution: 300 DPI
+Format: PDF (scanned images)
+10೧4870 tage i score
+do Rakkshitha 220
+Radhika 2000 GH
+5. Key Observations
+1. OCR performance decreases when tables are present.
+2. Small font sizes reduce accuracy.
+3. Noise in scanned images affects character recognition.
+4. Structured text improves model performance.
+6. Mathematical Representation
+OCR accuracy is evaluated using the following formula:
+CER represents character-level errors, while WER represents word-level errors.
+7. Sample Numbers for Testing
+Random numeric data included in the document:
+e Invoice Number: 458921
+e Date: 05/05/2026
+e Amount: 12,589.75
+e Reference Code: OCR-TEST-2026
+
+
+--- Page 4 ---
+8. Conclusion
+OCR systems perform well on clean printed documents but struggle with tables and complex
+layouts. Proper preprocessing significantly improves accuracy.
+ಮಾದರಿ ದಾಖಲೆ (OCR ಪರೀಕ್ನಗಾಗಿ)
+ಯೋಜನಾ ವರದಿ: OCR ಮೌಲ್ಯಮಾಪನ ವ್ಯವಸ್ಥೆ
+1. ಪರಿಚಯ
+ಆಪ್ಟಿಕಲ್‌ ಕ್ಯಾರೆಕ್ನರ್‌ ರೆಕಗ್ನಿಷನ್‌ (OCR) ಎ೦ಬುದು ಪಠ್ಯದ ಸ್ಕಾನ್‌ ಮಾಡಿದ ಚಿತ್ರಗಳನ್ನು
+ಯಂತ್ರ-ಓದಬಲ್ಲ ಪಠ್ಯವಾಗಿ ಪರಿವರ್ತಿಸುವ ತ೦ತ್ರಜ್ಞಾನವಾಗಿದೆ. ಇದನ್ನು ಡಾಕ್ಕುಮೆ೦ಟ್‌
+ಡಿಜಿಟಲೀಕರಣ, ಯಾಂತ್ರೀಕೃತ ವ್ಯವಸ್ಥೆಗಳು ಮತ್ತು ಸರ್ಕಾರಿ ದಾಖಲೆ ನಿರ್ವಹಣೆಯಲ್ಲಿ
+ವ್ಯಾಪಕವಾಗಿ ಬಳಸಲಾಗುತ್ತದೆ.
+OCR ವ್ಯವಸ್ಥೆಗಳ ನಿಖರತೆಯು ಚಿತ್ರದ ಗುಣಮಟ್ಮ, ಫಾ೦ಟ್‌ ಶೈಲಿ ಮತ್ತು ವಿನ್ಯಾಸ
+ಸಂಕೀರ್ಣತೆಯನ್ನು ಅವಲಂಬಿಸಿರುತ್ತದೆ.
+2. ಉದ್ದೇಶ
+ಈ ಯೋಜನೆಯ ಮುಖ್ಯ ಉದ್ದೇಶಗಳು:
+> ವಿಭಿನ್ನ OCR ಮಾದರಿಗಳನ್ನು ಮೌಲ್ಯಮಾಪನ ಮಾಡಲು
+* ಹೊರತೆಗೆಯಲಾದ ಪಠ್ಯವನ್ನು ನೆಲದ ಸತ್ಯದೊಂದಿಗೆ ಹೋಲಿಸಲು
+* CER ಮತ್ತು WER ಮೆಟ್ರಿಕ್‌ಗಳನ್ನು ಬಳಸಿಕೊ೦ಡು ನಿಖರತೆಯನ್ನು ಲೆಕ್ಕಾಚಾರ
+ಮಾಡಲು
+* ರಚನಾತ್ಮಕ ದಾಖಲೆಗಳಲ್ಲಿ ಕಾರ್ಯಕ್ಷಮತೆಯನ್ನು ವಿಶ್ಲೇಷಿಸಲು
+3. ಡೇಟಾಸೆಟ್‌ ವಿವರಗಳು
+ಮೌಲ್ಯಮಾಪನಕ್ಕಾಗಿ ಬಳಸಲಾಗುವ ಡೇಟಾಸೆಟ್‌ ವರ್ಡ್‌ ಫೈಲ್‌ಗಳಿ೦ದ ರಚಿಸಲಾದ
+ಸ್ಕ್ಯಾನ್‌ ಮಾಡಿದ ದಾಖಲೆಗಳನ್ನು ಒಳಗೊ೦ಡಿದೆ.
+ಒಟ್ಟು ದಾಖಲೆಗಳು: 5
+ಭಾಷೆ: ಇ೦ಗ್ಲಿಷ್‌
+ರೆಸಲ್ಯೂಶನ್‌: 300 DPI
+
+
+--- Page 5 ---
+ಫಾರ್ಮ್ಯಾಟ್‌: PDF (ಸ್ಕ್ಯಾನ್‌ ಮಾಡಿದ ಚಿತ್ರಗಳು)
+|]_____'[ರಕ್ಷಿತ [22೨0
+2 ರಂಜಿತ _|207|9೫92
+3 [ರಾಧಿಕಾ [207090೧
+5.ಪ್ರಮುಖ ಅವಲೋಕನಗಳು
+1. ಕೋಷ್ಟಕಗಳು ಇರುವಾಗ OCR ಕಾರ್ಯಕ್ಷಮತೆ ಕಡಿಮೆಯಾಗುತ್ತದೆ.
+2. ಸಣ್ಣ ಫಾ೦ಟ್‌ ಗಾತ್ರಗಳು ನಿಖರತೆಯನ್ನು ಕಡಿಮೆ ಮಾಡುತ್ತದೆ.
+3. ಸ್ಕ್ಯಾನ್‌ ಮಾಡಿದ ಚಿತ್ರಗಳಲ್ಲಿನ ಶಬ್ದವು ಅಕ್ಷರ ಗುರುತಿಸುವಿಕೆಯ ಮೇಲೆ ಪರಿಣಾಮ
+ಬೀರುತ್ತದೆ.
+4. ರಚನಾತ್ಮಕ ಪಠ್ಯವು ಮಾದರಿ ಕಾರ್ಯಕ್ಷಮತೆಯನ್ನು ಸುಧಾರಿಸುತ್ತದೆ.
+6. ಗಣಿತ ಪ್ರಾತಿನಿಧ್ಯ
+OCR ನಿಖರತೆಯನ್ನು ಈ ಕಳಗಿನ ಸೂತ್ರವನ್ನು ಬಳಸಿಕೂ೦ಡು ಮೌಲ್ಯಮಾಪನ
+ಮಾಡಲಾಗುತ್ತದೆ:
+CER ಅಕ್ಷರ-ಮಟ್ಟದ ದೋಷಗಳನ್ನು ಪ್ರತಿನಿಧಿಸುತ್ತದೆ, ಆದರೆ WER ಪದ-ಮಟ್ಟದ
+ದೋಷಗಳನ್ನು ಪ್ರತಿನಿಧಿಸುತ್ತದೆ.
+7. BORE TION ಮಾದರಿ ಸ೦ಖ್ಯೆಗಳು
+ಡಾಕ್ಯುಮೆ೦ಟ್‌ನಲ್ಲಿ ಸೇರಿಸಲಾದ ಯಾದೃಚ್ಚಿಕ ಸಂಖ್ಯಾತ ಡೇಟಾ:
+
+© ಇನ್‌ವಾಯ್ಸ್‌ ಸ೦ಖ್ಯೆ: 458921
+
+* ದಿನಾ೦ಕ: 05/05/2026
+
+* ಮೊತ್ತ: 12,589.75
+
+* ಉಲ್ಲೇಖ ಕೋಡ್‌: OCR-TEST-2026
+
+* ತೀರ್ಮಾನ
+
+
+--- Page 6 ---
+OCR ವ್ಯವಸ್ಥೆಗಳು ಸ್ವಚ್ಚವಾದ ಮುದ್ರಿತ ದಾಖಲೆಗಳಲ್ಲಿ ಉತ್ತಮವಾಗಿ
+ಕಾರ್ಯನಿರ್ವಹಿಸುತ್ತವೆ ಆದರೆ ಕೋಷ್ಟಕಗಳು ಮತ್ತು ಸ೦ಕೀರ್ಣ ವಿನ್ಯಾಸಗಳೊಂ೦ದಿಗೆ
+ಹೋರಾಡುತ್ತವೆ. ಸರಿಯಾದ ಪೂರ್ವ-ಸ೦ಸ್ಕರಣೆಯು ವಿಖರತೆಯನ್ನು ಗಮನಾರ್ಹವಾಗಿ
+ಸುಧಾರಿಸುತ್ತದೆ.
+
+ಮಾದರಿ ದಾಖಲೆ (OCR ಪರೀಕ್ಷೆಗಾಗಿ)
+
+ಯೋಜನೆಯ ವರದಿ: OCR ಮೌಲ್ಯಮಾಪನ ವ್ಯವಸ್ಥೆ
+
+1. ಪರಿಚಯ
+
+ಆಪ್ಟಿಕಲ್‌ ಕ್ಯಾರೆಕ್ಟರ್‌ BBN Wa (OCR) ಎ೦ಬುದು ಪಠ್ಯದ ಸ್ಕ್ಯಾನ್‌ ಮಾಡಿದ ಚಿತ್ರಗಳನ್ನು
+ಯಂತ್ರ-ಓದಬಲ್ಲ ಪಠ್ಯವಾಗಿ ಪರಿವರ್ತಿಸುವ ತ೦ತ್ರಜ್ನ್ಞಾನವಾಗಿದೆ. ಇದನ್ನು ಡಾಕ್ಯುಮೆ೦ಟ್‌
+ಡಿಜಿಟಲೀಕರಣ, ಯಾಂತ್ರೀಕೃತ ವ್ಯವಸ್ಥೆಗಳು ಮತ್ತು ಸರ್ಕಾರಿ ದಾಖಲೆ ನಿರ್ವಹಣೆಯಲ್ಲಿ
+ವ್ಯಾಪಕವಾಗಿ ಬಳಸಲಾಗುತ್ತದೆ.
+
+OCR ವ್ಯವಸ್ಥೆಗಳ ನಿಖರತೆಯು ಚಿತ್ರದ ಗುಣಮಟ್ಟ, Pood ಶೈಲಿ ಮತ್ತು ವಿನ್ಯಾಸ
+ಸಂಕೀರ್ಣತೆಯನ್ನು ಅವಲಂಬಿಸಿರುತ್ತದೆ.
+
+2. ಉದ್ದೇಶ
+
+ಈ ಯೋಜನೆಯ ಮುಖ್ಯ ಉದ್ದೇಶಗಳು:
+
+“ಅಭಿನ್ನ OCR ಮಾದರಿಗಳನ್ನು ಮೌಲ್ಯಮಾಪನ ಮಾಡುವುದು
+
+* ಹೊರತೆಗೆಯಲಾದ ಪಠ್ಯವನ್ನು ನೆಲದ ಸತ್ಯದೊಂದಿಗೆ ಹೋಲಿಸುವುದು
+
+¢ CER ಮತ್ತು WER ಮೆಟ್ರಿಕ್‌ಗಳನ್ನು ಬಳಸಿಕೊ೦ಡು ನಿಖರತೆಯನ್ನು ಲೆಕ್ಕಾಚಾರ
+ಮಾಡುವುದು
+
+“ರಚನಾತ್ಮಕ ದಾಖಲೆಗಳಲ್ಲಿ ಕಾರ್ಯಕಮತೆಯನ್ನು ವಿಶ್ಲೇಷಿಸುವುದು
+
+3. ಡೇಟಾಸೆಟ್‌ ವಿವರಗಳು
+
+
+--- Page 7 ---
+ಮೌಲ್ಯಮಾಪನಕ್ಕಾಗಿ ಬಳಸಲಾದ ಡೇಟಾಸೆಟ್‌ ವರ್ಡ್‌ ಫೈಲ್‌ಗಳಿ೦ದ ರಚಿಸಲಾದ ಸ್ಕ್ಯಾನ್‌
+ಮಾಡಿದ ದಾಖಲೆಗಳನ್ನು ಒಳಗೊಂಡಿದೆ.
+
+ಒಟ್ಟು ದಾಖಲೆಗಳು: 5
+
+ಭಾಷ: ಇ೦ಗ್ಲಿಷ್‌
+
+ರೆಸಲ್ಯೂಶನ್‌: 300 DPI
+
+ಫಾರ್ಮ್ಯಾಟ್‌: PDF (ಸ್ಕ್ಯಾನ್‌ ಮಾಡಿದ ಚಿತ್ರಗಳು)
+
+ಐಡಿ ಹೆಸರು ವಯಸ್ಸಿನ ಸ್ಕೋರ್‌
+
+1 ರಕ್ಷಿತ 2298
+
+2 ರಂಜಿತ 20 97
+
+3 ರಾಧಿಕಾ 20 96
+
+4 ರಾಕೇಶ್‌ 18 95
+
+5.ಪ್ರಮುಖ ಅವಲೋಕನಗಳು
+
+1. ಕೋಷ್ಟಕಗಳು ಇದ್ದಾಗ OCR ಕಾರ್ಯಕ್ಷಮತೆ ಕಡಿಮೆಯಾಗುತ್ತದೆ.
+
+2. ಸಣ್ಣ ಫಾ೦ಟ್‌ ಗಾತ್ರಗಳು ನಿಖರತೆಯನ್ನು ಕಡಿಮೆ ಮಾಡುತ್ತದೆ.
+
+3. ಸ್ಕ್ಯಾನ್‌ ಮಾಡಿದ ಚಿತ್ರಗಳಲ್ಲಿನ ಶಬ್ದವು ಅಕ್ಷರ ಗುರುತಿಸುವಿಕೆಯ ಮೇಲೆ ಪರಿಣಾಮ
+ಬೀರುತ್ತದೆ.
+
+4. ರಚನಾತ್ಮಕ ಪಠ್ಯವು ಮಾದರಿ ಕಾರ್ಯಕ್ಷಮತೆಯನ್ನು ಸುಧಾರಿಸುತ್ತದೆ.
+
+6. ಗಣಿತದ ಪ್ರಾತಿನಿಧ್ಯ
+
+OCR ನಿಖರತೆಯನ್ನು ಈ ಕಳಗಿನ ಸೂತ್ರವನ್ನು ಬಳಸಿಕೊ೦ಡು ಮೌಲ್ಯಮಾಪನ
+ಮಾಡಲಾಗುತ್ತದೆ:
+
+
+--- Page 8 ---
+CER ಅಕ್ಷರ-ಮಟ್ಟದ ದೋಷಗಳನ್ನು ಪ್ರತಿನಿಧಿಸುತ್ತದೆ, ಆದರೆ WER ಪದ-ಮಟ್ಟದ
+ದೋಷಗಳನ್ನು ಪ್ರತಿನಿಧಿಸುತ್ತದೆ.
+
+7. ಪರೀಕ್ಷೆಗಾಗಿ ಮಾದರಿ ಸ೦ಖ್ಯೆಗಳು
+
+ಡಾಕ್ಕುಮೆ೦ಟ್‌ನಲ್ಲಿ ಸೇರಿಸಲಾದ ಯಾದೃಚ್ಚಿಕ ಸಂಖ್ಯಾತ ಡೇಟಾ:
+
+*“ ಇನ್‌ವಾಯ್ಸ್‌ ಸ೦ಖ್ಯೆ: 458921
+
+¢ ದಿನಾ೦ಕ: 05/05/2026
+
+* ಮೊತ್ತ: 12,589.75
+
+“ ಉಲ್ಲೇಖ ಕೋಡ್‌: OCR-TEST-2026
+
+8. ತೀರ್ಮಾನ
+
+OCR ವ್ಯವಸ್ಥೆಗಳು ಸ್ವಚ್ಚವಾದ ಮುದ್ರಿತ ದಾಖಲೆಗಳಲ್ಲಿ ಉತ್ತಮವಾಗಿ
+ಕಾರ್ಯನಿರ್ವಹಿಸುತ್ತವೆ ಆದರೆ ಕೋಷ್ಟಕಗಳು ಮತ್ತು ಸ೦ಕೀರ್ಣ ವಿನ್ಯಾಸಗಳೊಂ೦ದಿಗೆ
+ಹೋರಾಡುತ್ತವೆ. ಸರಿಯಾದ ಪೂರ್ವ-ಸ೦ಸ್ಕರಣೆಯು ವಿಖರತೆಯನ್ನು ಗಮನಾರ್ಹವಾಗಿ
+ಸುಧಾರಿಸುತ್ತದೆ.
+
+
+--- Page 9 ---
+

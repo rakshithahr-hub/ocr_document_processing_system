@@ -1,0 +1,30 @@
+{
+  "filename": "June_Monthly_work_report_format_output",
+  "text": "\n--- Page 1 ---\nAIML, Centre for e-Governance, Government of Karnataka\nMonthly Progress Report\n@e@ Liu 01-June-2026 to ಬಾ 8\nCENTRE FOR GOVERNANCE 30- June -2026 ಇಷ್ಟ we\ne-Enabling Government ಇರ ಇಲ್ಲ =\n[| _Designation |inten [|\n8 | | ನ lou\nStudied the existing Face Anti-Spoofing Detection System and planned the integration of\n01-06-2026 . ೆ ಕ್‌\nreal-time liveness verification.\nImplemented live camera access using the WebRTC API (get UserMedia ()) and displayed\n02-06-2026 . . . ae\nthe real-time video stream in the React application.\n03-06-2026 ntegrated OpenCV Haar Cascade for face detection and implemented face tracking with\nbounding box overlay.\nDeveloped the sequential liveness verification workflow using LEFT and RIGHT head\n04-06-2026 : .\nmovement detection based on face X-coordinate changes.\nAdded progress tracking, challenge status indicators, and automatic face capture after\n05-06-2026 ನ Pn\nsuccessful liveness verification.\nIntegrated the liveness verification module with the existing Face Anti-Spoofing Detection\n06-06-2026 ನ ಎ ್ಲ\nSystem and performed functionality testing.\n07-06-2026\neveloped the React.js frontend for the OCR Document Processing System with responsive\n08-06-2026 : . : rae\nuser interface using Bootstrap for styling the web application.\n09-06-2026 Implemented drag-and-drop document upload, multilingual language selection, and\ndocument preview functionality.\nDeveloped real-time OCR progress tracking, extracted text display, confidence score\n10-06-2026 ಗಳ ಕ ; : ;\nvisualization, and Copy-to-Clipboard functionality.\n11-06-2026 Designed and implemented the About page describing OCR technologies and application\nfeatures.\n12-06-2026 Developed RESTful APIs using Flask and Flask-CORS and integrated Tesseract OCR and\nEasyOCR with OCR engine selection.\n13-06-2026 276 Saturaday\n14-06-2026\nImplemented multilingual OCR processing supporting PDF, DOCX, PNG, JPEG, BMP, TIFF,\n15-06-2026\nand WebP document formats.\n16-06-2026 Leave(Exam)\n17-06-2026 Added secure file upload with MIME type validation, supported file extension verification,\nand file size validation.\n18-06-2026 Implemented image dimension validation, SHA-256 hash generation, and secure document\nhandling features.\nDeveloped OCR result export functionality supporting TXT, PDF, and JSON formats with\n19-06-2026 .\nconfidence scores and metadata.\n20-06-2026 Implemented multi-page document export and improved OCR result management\nfeatures.\n21-06-2026\n22-06-2026 Performed integration testing of the OCR Document Processing System and resolved\nfrontend-backend communication issues.\n23-06-2026 Conducted application testing, UI refinement, and bug fixing for both Face Anti-Spoofing\nand OCR systems.\nಮ ಯು. | ರ್‌ ಕಾ\n\n\n--- Page 2 ---\nAIML, Centre for e-Governance, Government of Karnataka\nMonthly Progress Report\n24-06-2026 Improved application performance and optimized user interface responsiveness across\ndifferent modules.\n25-06-2026 Performed final testing and validation of the complete OCR and Face Anti-Spoofing web\napplications.\n26-06-2026 Moharam Day\n27-06-2026 41 Saturday\n28-06-2026\n29-06-2026 Deployed the Face Anti-Spoofing Detection System on Render and verified successful\ndeployment.\n30-06-2026 Conducted final deployment testing, fixed deployment issues, and prepared project\ndocumentation and monthly progress report.\nIntern Project Manager Project Director\nAIML AIML AIML\nCentre for e-Governance Centre for e-Governance Centre for e-Governance\noneal a on |\n\n",
+  "engine": "tesseract",
+  "languages": [
+    "eng",
+    "kan"
+  ],
+  "language_display": "English + Kannada",
+  "exact_confidence": 92.93,
+  "confidence_details": {
+    "exact_confidence": 92.93,
+    "total_pages": 2,
+    "pages_processed": 2,
+    "engine": "tesseract",
+    "languages": [
+      "eng",
+      "kan"
+    ],
+    "language_display": "English + Kannada"
+  },
+  "processing_time": 9.71,
+  "sanitization": {
+    "mime_type": "application/pdf",
+    "file_size": 507864,
+    "file_hash": "fde3a823cfdc28d6eb54dfa42b0de993b2dfb197be08b5911984db99650362f8",
+    "file_extension": "pdf",
+    "is_safe": true
+  }
+}

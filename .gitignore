@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.pyc
+venv/
+.env
+
+# React
+node_modules/
+dist/
+
+# VS Code
+.vscode/
+
+# Logs
+*.log
+
+# Uploads
+uploads/
+
+# OCR outputs
+output/
+temp/
+
+# OS
+.DS_Store
+Thumbs.db

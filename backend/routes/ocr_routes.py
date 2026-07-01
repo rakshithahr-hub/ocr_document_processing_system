@@ -1,8 +1,9 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
 import os
 import time
-from werkzeug.utils import secure_filename
-from config import Config
+import traceback
+import json
+
 import pytesseract
 from PIL import Image
 import pdf2image
@@ -10,209 +11,286 @@ import docx
 import cv2
 import numpy as np
 
+from werkzeug.utils import secure_filename
+from config import Config, POPPLER_PATH
+
 ocr_bp = Blueprint('ocr', __name__, url_prefix='/api')
 
-# ✅ Ensure upload folder exists before saving
-def ensure_upload_folder():
-    if not os.path.exists(Config.UPLOAD_FOLDER):
-        os.makedirs(Config.UPLOAD_FOLDER, exist_ok=True)
-    return Config.UPLOAD_FOLDER
 
+# ===============================
+# Ensure folders exist (IMPORTANT for Render)
+# ===============================
+def ensure_directories():
+    os.makedirs(Config.UPLOAD_FOLDER, exist_ok=True)
+    os.makedirs(Config.OUTPUT_FOLDER, exist_ok=True)
+    os.makedirs(Config.TEMP_FOLDER, exist_ok=True)
+
+
+# ===============================
+# Allowed file check
+# ===============================
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in Config.ALLOWED_EXTENSIONS
 
+
+# ===============================
+# DOCX extraction
+# ===============================
+def extract_docx(filepath):
+    doc = docx.Document(filepath)
+    return "\n".join([p.text for p in doc.paragraphs])
+
+
+# ===============================
+# Confidence calculation
+# ===============================
+def calculate_confidence(image, lang):
+    try:
+        data = pytesseract.image_to_data(
+            image,
+            lang=lang,
+            output_type=pytesseract.Output.DICT,
+            config="--psm 6 --oem 3"
+        )
+
+        confidences = []
+        weights = []
+
+        for i, text in enumerate(data["text"]):
+            if text.strip():
+                conf = int(data["conf"][i])
+                if conf > 0:
+                    confidences.append(conf)
+                    weights.append(len(text))
+
+        if not confidences:
+            return 0
+
+        return round(
+            sum(c * w for c, w in zip(confidences, weights)) / sum(weights),
+            2
+        )
+
+    except:
+        return 0
+
+
+# ===============================
+# PDF CONVERSION WITH FALLBACK
+# ===============================
+def convert_pdf_to_images(filepath):
+    """Convert PDF to images with multiple fallback methods"""
+    
+    # Get poppler path from config
+    poppler_path = POPPLER_PATH
+    
+    print(f"🔍 Converting PDF with poppler path: {poppler_path}")
+    
+    # Method 1: Try with explicit poppler path
+    try:
+        images = pdf2image.convert_from_path(
+            filepath,
+            poppler_path=poppler_path,
+            dpi=150,
+            fmt='jpeg'
+        )
+        if images:
+            print(f"✅ PDF converted successfully with explicit path")
+            return images
+    except Exception as e:
+        print(f"⚠️ Method 1 failed: {e}")
+    
+    # Method 2: Try without poppler path (system PATH)
+    try:
+        images = pdf2image.convert_from_path(
+            filepath,
+            dpi=150,
+            fmt='jpeg'
+        )
+        if images:
+            print(f"✅ PDF converted successfully using system PATH")
+            return images
+    except Exception as e:
+        print(f"⚠️ Method 2 failed: {e}")
+    
+    # Method 3: Try with lower DPI
+    try:
+        images = pdf2image.convert_from_path(
+            filepath,
+            poppler_path=poppler_path,
+            dpi=100,
+            fmt='jpeg'
+        )
+        if images:
+            print(f"✅ PDF converted successfully with lower DPI")
+            return images
+    except Exception as e:
+        print(f"⚠️ Method 3 failed: {e}")
+    
+    # Method 4: Try with PNG format
+    try:
+        images = pdf2image.convert_from_path(
+            filepath,
+            poppler_path=poppler_path,
+            dpi=150,
+            fmt='png'
+        )
+        if images:
+            print(f"✅ PDF converted successfully with PNG format")
+            return images
+    except Exception as e:
+        print(f"⚠️ Method 4 failed: {e}")
+    
+    # All methods failed
+    raise Exception("All PDF conversion methods failed. Poppler may not be installed.")
+
+
+# ===============================
+# MAIN OCR ROUTE
+# ===============================
 @ocr_bp.route('/upload', methods=['POST'])
 def upload_file():
     try:
         start_time = time.time()
-        
-        # Check if file exists
+
+        ensure_directories()
+
+        # -------------------------------
+        # Validate file
+        # -------------------------------
         if 'file' not in request.files:
             return jsonify({'error': 'No file provided'}), 400
-        
+
         file = request.files['file']
+
         if file.filename == '':
             return jsonify({'error': 'No file selected'}), 400
-        
-        # Validate file type
+
         if not allowed_file(file.filename):
             return jsonify({'error': 'File type not allowed'}), 400
-        
-        # ✅ Ensure upload directory exists
-        upload_folder = ensure_upload_folder()
-        output_folder = Config.OUTPUT_FOLDER
-        os.makedirs(output_folder, exist_ok=True)
-        
-        # ✅ Save file with secure filename
+
+        # -------------------------------
+        # Save file safely
+        # -------------------------------
         filename = secure_filename(file.filename)
-        filepath = os.path.join(upload_folder, filename)
-        
-        # ✅ Handle duplicate filenames
+        upload_path = os.path.join(Config.UPLOAD_FOLDER, filename)
+
         counter = 1
         base, ext = os.path.splitext(filename)
-        while os.path.exists(filepath):
+
+        while os.path.exists(upload_path):
             filename = f"{base}_{counter}{ext}"
-            filepath = os.path.join(upload_folder, filename)
+            upload_path = os.path.join(Config.UPLOAD_FOLDER, filename)
             counter += 1
-        
-        file.save(filepath)
-        
-        # ✅ Verify file was saved
-        if not os.path.exists(filepath):
-            return jsonify({'error': 'Failed to save file'}), 500
-        
-        file_size = os.path.getsize(filepath)
-        print(f"✅ File saved: {filepath} ({file_size} bytes)")
-        
-        # ===============================
-        # PROGRESS TRACKING
-        # ===============================
-        progress = {
-            'status': 'processing',
-            'total_pages': 0,
-            'current_page': 0,
-            'percentage': 0,
-            'stage': 'starting',
-            'message': 'Starting OCR process...'
-        }
-        
-        # Get parameters
+
+        file.save(upload_path)
+        print(f"✅ File saved: {upload_path}")
+
+        # -------------------------------
+        # Get params
+        # -------------------------------
         engine = request.form.get('engine', 'tesseract')
         language_param = request.form.get('language', 'eng')
-        
-        if '+' in language_param:
-            languages = language_param.split('+')
-        elif ',' in language_param:
-            languages = language_param.split(',')
-        else:
-            languages = [language_param]
-        
-        languages = [lang.strip() for lang in languages if lang.strip()]
-        tesseract_langs = '+'.join(languages)
-        
-        print(f"🔍 Processing with languages: {languages}")
-        print(f"🔍 Engine: {engine}")
-        print(f"🔍 File: {filepath}")
-        
-        # ===============================
-        # PROCESS THE FILE
-        # ===============================
+
+        languages = language_param.replace("+", ",").split(",")
+        languages = [l.strip() for l in languages if l.strip()]
+        tesseract_lang = "+".join(languages)
+
         extracted_text = ""
-        exact_confidence = 0
-        confidence_data = {}
-        
-        if filename.lower().endswith('.pdf'):
+        confidence = 0
+
+        # -------------------------------
+        # IMAGE / PDF / DOCX handling
+        # -------------------------------
+        if filename.lower().endswith(".pdf"):
             try:
-                progress['stage'] = 'converting'
-                progress['message'] = 'Converting PDF to images...'
+                # ✅ Use the new conversion function with fallbacks
+                images = convert_pdf_to_images(upload_path)
                 
-                images = pdf2image.convert_from_path(
-                    filepath,
-                    poppler_path=Config.POPPLER_PATH,
-                    dpi=150
-                )
+                if not images:
+                    return jsonify({'error': 'PDF conversion failed - no images extracted'}), 500
+                
+                all_conf = []
                 total_pages = len(images)
-                progress['total_pages'] = total_pages
-                progress['stage'] = 'ocr'
-                
-                print(f"✅ Converted {total_pages} PDF pages")
-                
-                all_confidences = []
-                
-                for i, image in enumerate(images):
-                    current_page = i + 1
-                    progress['current_page'] = current_page
-                    progress['percentage'] = round((current_page / total_pages) * 100, 1)
-                    progress['message'] = f'Processing page {current_page}/{total_pages}...'
-                    
-                    print(f"📊 Progress: {progress['percentage']:.1f}% - Page {current_page}/{total_pages}")
-                    
-                    # Process image
-                    if any(lang in ['kan', 'hin', 'tam', 'tel', 'mal', 'ben', 'guj', 'mar', 'ori', 'pan', 'urd'] for lang in languages):
-                        # Indic language preprocessing
-                        img_cv = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
-                        temp_path = os.path.join(Config.TEMP_FOLDER, f"temp_page_{i}.png")
-                        cv2.imwrite(temp_path, img_cv)
-                        # Preprocess for indic languages
-                        processed_img = preprocess_for_indic_languages(temp_path)
-                        pil_image = Image.fromarray(processed_img)
-                        if os.path.exists(temp_path):
-                            os.remove(temp_path)
-                    else:
-                        pil_image = image
-                    
-                    text = pytesseract.image_to_string(
-                        pil_image,
-                        lang=tesseract_langs,
-                        config='--psm 6 --oem 3'
+                print(f"📄 Processing {total_pages} PDF pages")
+
+                for i, img in enumerate(images):
+                    if img is None:
+                        print(f"⚠️ Page {i+1} is None, skipping...")
+                        continue
+                        
+                    page_text = pytesseract.image_to_string(
+                        img,
+                        lang=tesseract_lang,
+                        config="--psm 6 --oem 3"
                     )
-                    
-                    extracted_text += f"\n--- Page {current_page} ---\n"
-                    extracted_text += text + "\n"
-                    
-                    # Calculate confidence
-                    confidence_result = calculate_tesseract_confidence(pil_image, tesseract_langs)
-                    all_confidences.append(confidence_result)
-                    
-                    print(f"📊 Page {current_page} Confidence: {confidence_result.get('exact_confidence', 0)}%")
-                
-                # Calculate overall confidence
-                total_chars = sum([r.get('total_characters', 0) for r in all_confidences])
-                if total_chars > 0:
-                    weighted_sum = sum([r.get('exact_confidence', 0) * r.get('total_characters', 0) 
-                                      for r in all_confidences])
-                    exact_confidence = round(weighted_sum / total_chars, 2)
-                
-                confidence_data = {
-                    'exact_confidence': exact_confidence,
-                    'total_pages': total_pages,
-                    'pages_processed': len([r for r in all_confidences if r.get('exact_confidence', 0) > 0]),
-                    'engine': 'tesseract',
-                    'languages': languages
-                }
-                
-                progress['percentage'] = 100
-                progress['message'] = 'Complete!'
-                
-                print(f"📊 Overall Confidence: {exact_confidence}%")
+
+                    extracted_text += f"\n--- Page {i+1} ---\n{page_text}"
+
+                    conf = calculate_confidence(img, tesseract_lang)
+                    all_conf.append(conf)
+                    print(f"📊 Page {i+1} confidence: {conf}%")
+
+                confidence = round(sum(all_conf) / len(all_conf), 2) if all_conf else 0
                 
             except Exception as e:
                 print(f"❌ PDF processing error: {str(e)}")
+                traceback.print_exc()
                 return jsonify({'error': f'PDF processing failed: {str(e)}'}), 500
-        
+
+        elif filename.lower().endswith(".docx"):
+            extracted_text = extract_docx(upload_path)
+            confidence = 100
+
+        else:
+            # Image processing
+            try:
+                image = Image.open(upload_path)
+                
+                extracted_text = pytesseract.image_to_string(
+                    image,
+                    lang=tesseract_lang,
+                    config="--psm 6 --oem 3"
+                )
+
+                confidence = calculate_confidence(image, tesseract_lang)
+                
+            except Exception as e:
+                print(f"❌ Image processing error: {str(e)}")
+                return jsonify({'error': f'Image processing failed: {str(e)}'}), 500
+
+        # -------------------------------
         # Save output
+        # -------------------------------
         base_name = os.path.splitext(filename)[0]
-        output_file = f"{base_name}_output"
-        output_path = os.path.join(Config.OUTPUT_FOLDER, output_file)
-        
-        with open(f"{output_path}.txt", 'w', encoding='utf-8') as f:
+        output_path = os.path.join(Config.OUTPUT_FOLDER, base_name)
+
+        with open(output_path + ".txt", "w", encoding="utf-8") as f:
             f.write(extracted_text)
-        
-        processing_time = round(time.time() - start_time, 2)
-        
+
+        with open(output_path + ".json", "w", encoding="utf-8") as f:
+            json.dump({
+                "text": extracted_text,
+                "confidence": confidence,
+                "engine": engine,
+                "languages": languages,
+                "processing_time": round(time.time() - start_time, 2)
+            }, f, indent=2)
+
+        # -------------------------------
+        # Response
+        # -------------------------------
         return jsonify({
-            'success': True,
-            'extracted_text': extracted_text,
-            'filename': output_file,
-            'engine': engine,
-            'languages': languages,
-            'exact_confidence': exact_confidence,
-            'confidence_details': confidence_data,
-            'processing_time': processing_time,
-            'progress': progress
+            "success": True,
+            "filename": base_name,
+            "text": extracted_text,
+            "confidence": confidence,
+            "engine": engine,
+            "languages": languages,
+            "processing_time": round(time.time() - start_time, 2)
         })
-        
+
     except Exception as e:
-        print(f"❌ OCR Error: {str(e)}")
-        import traceback
+        print("❌ OCR ERROR:", str(e))
         traceback.print_exc()
-        return jsonify({'error': str(e)}), 500
-
-# Helper functions
-def preprocess_for_indic_languages(image_path):
-    # Your preprocessing function here
-    pass
-
-def calculate_tesseract_confidence(image, lang):
-    # Your confidence calculation here
-    pass
+        return jsonify({"error": str(e)}), 500

@@ -1,40 +1,32 @@
 from flask import Flask, jsonify
 from flask_cors import CORS
 import os
+import subprocess
 
-# Import Route Blueprints
 from routes.health_routes import health_bp
 from routes.ocr_routes import ocr_bp
 from routes.download_routes import download_bp
-
-# Import Configuration
-from config import Config
-
-# ✅ Ensure directories exist on startup
-def ensure_directories():
-    """Create necessary directories if they don't exist"""
-    folders = [
-        Config.UPLOAD_FOLDER,
-        Config.OUTPUT_FOLDER,
-        Config.TEMP_FOLDER
-    ]
-    for folder in folders:
-        try:
-            os.makedirs(folder, exist_ok=True)
-            print(f"✅ Directory ready: {folder}")
-        except Exception as e:
-            print(f"❌ Failed to create directory {folder}: {e}")
+from config import Config, POPPLER_PATH
 
 def create_app():
     app = Flask(__name__)
-
-    # Load Configuration
     app.config.from_object(Config)
 
-    # ✅ Ensure directories exist
-    ensure_directories()
+    # Store poppler path in app config
+    app.config['POPPLER_PATH'] = POPPLER_PATH
 
-    # Enable CORS - ✅ Allow both frontend and local development
+    # Ensure directories exist
+    for folder in [Config.UPLOAD_FOLDER, Config.OUTPUT_FOLDER, Config.TEMP_FOLDER]:
+        os.makedirs(folder, exist_ok=True)
+        print(f"✅ Directory ready: {folder}")
+
+    # Check poppler
+    if POPPLER_PATH:
+        print(f"✅ Poppler found at: {POPPLER_PATH}")
+    else:
+        print("ℹ️ Poppler will use system PATH")
+
+    # Enable CORS
     CORS(app, resources={
         r"/api/*": {
             "origins": [
@@ -62,11 +54,14 @@ def create_app():
                 "uploads": os.path.exists(Config.UPLOAD_FOLDER),
                 "outputs": os.path.exists(Config.OUTPUT_FOLDER),
                 "temp": os.path.exists(Config.TEMP_FOLDER)
+            },
+            "poppler": {
+                "path": POPPLER_PATH,
+                "available": POPPLER_PATH is not None or os.system("pdfinfo -v > /dev/null 2>&1") == 0
             }
         })
 
     return app
-
 
 app = create_app()
 

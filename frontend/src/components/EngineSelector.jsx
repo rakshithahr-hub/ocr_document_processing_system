@@ -4,7 +4,7 @@ import { Form } from 'react-bootstrap';
 function EngineSelector({ selectedEngine, setSelectedEngine }) {
   const engines = [
     { value: 'tesseract', label: 'Tesseract' },
-    { value: 'easyocr', label: 'EasyOCR' }
+    
     
   ];
 

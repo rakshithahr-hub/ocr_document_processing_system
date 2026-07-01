@@ -7,11 +7,12 @@ class Config:
 
     MAX_CONTENT_LENGTH = 100 * 1024 * 1024      # 100 MB
 
-    UPLOAD_FOLDER = "uploads"
-
-    OUTPUT_FOLDER = "outputs"
-
-    TEMP_FOLDER = "temp"
+    # ✅ Use absolute paths for Render compatibility
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    
+    UPLOAD_FOLDER = os.path.join(BASE_DIR, "uploads")
+    OUTPUT_FOLDER = os.path.join(BASE_DIR, "outputs")
+    TEMP_FOLDER = os.path.join(BASE_DIR, "temp")
 
     ALLOWED_EXTENSIONS = {
         "pdf",
@@ -32,3 +33,9 @@ class Config:
         # Linux (Render)
         TESSERACT_CMD = "/usr/bin/tesseract"
         POPPLER_PATH = None
+
+# ✅ Create directories when config is imported
+for folder in [Config.UPLOAD_FOLDER, Config.OUTPUT_FOLDER, Config.TEMP_FOLDER]:
+    if not os.path.exists(folder):
+        os.makedirs(folder, exist_ok=True)
+        print(f"✅ Created directory: {folder}")

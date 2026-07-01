@@ -10,12 +10,13 @@ import numpy as np
 from werkzeug.utils import secure_filename
 from config import Config
 import time
+import traceback
 
 # Import sanitizer
 from utils.file_sanitizer import file_sanitizer
 
 # Poppler path for Windows
-POPPLER_PATH = r"C:\poppler\bin"
+POPPLER_PATH = Config.POPPLER_PATH
 
 # ===============================
 # Language mapping
@@ -71,6 +72,23 @@ DEFAULT_LANGUAGES = [
 ]
 
 INDIC_LANGUAGES = ['kan', 'hin', 'tam', 'tel', 'mal', 'ben', 'guj', 'mar', 'ori', 'pan', 'urd']
+
+# ===============================
+# HELPER FUNCTIONS
+# ===============================
+
+def ensure_directories():
+    """Ensure all required directories exist"""
+    folders = [
+        Config.UPLOAD_FOLDER,
+        Config.OUTPUT_FOLDER,
+        Config.TEMP_FOLDER
+    ]
+    for folder in folders:
+        try:
+            os.makedirs(folder, exist_ok=True)
+        except Exception as e:
+            print(f"⚠️ Could not create directory {folder}: {e}")
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in Config.ALLOWED_EXTENSIONS
@@ -165,47 +183,6 @@ class ImagePreprocessor:
         return thresh
 
 # ===============================
-# GET LANGUAGES
-# ===============================
-def get_languages():
-    """Controller to get available languages for OCR"""
-    try:
-        try:
-            tesseract_langs = pytesseract.get_languages()
-            available_languages = []
-            
-            for lang_code in tesseract_langs:
-                if lang_code in LANGUAGE_MAP:
-                    available_languages.append({
-                        'code': lang_code,
-                        'name': LANGUAGE_MAP[lang_code]
-                    })
-            
-            if available_languages:
-                return jsonify({
-                    'languages': available_languages,
-                    'total': len(available_languages),
-                    'source': 'tesseract'
-                })
-        except Exception as e:
-            print(f"Tesseract not available: {str(e)}")
-        
-        return jsonify({
-            'languages': DEFAULT_LANGUAGES,
-            'total': len(DEFAULT_LANGUAGES),
-            'source': 'default'
-        })
-        
-    except Exception as e:
-        print(f"Error in get_languages: {str(e)}")
-        return jsonify({
-            'languages': DEFAULT_LANGUAGES,
-            'total': len(DEFAULT_LANGUAGES),
-            'source': 'default',
-            'error': str(e)
-        })
-
-# ===============================
 # TESSERACT CONFIDENCE CALCULATION
 # ===============================
 def calculate_tesseract_confidence(image, lang):
@@ -248,12 +225,56 @@ def calculate_tesseract_confidence(image, lang):
         return {'exact_confidence': 0, 'total_characters': 0}
 
 # ===============================
-# UPLOAD FILE
+# GET LANGUAGES
+# ===============================
+def get_languages():
+    """Controller to get available languages for OCR"""
+    try:
+        try:
+            tesseract_langs = pytesseract.get_languages()
+            available_languages = []
+            
+            for lang_code in tesseract_langs:
+                if lang_code in LANGUAGE_MAP:
+                    available_languages.append({
+                        'code': lang_code,
+                        'name': LANGUAGE_MAP[lang_code]
+                    })
+            
+            if available_languages:
+                return jsonify({
+                    'languages': available_languages,
+                    'total': len(available_languages),
+                    'source': 'tesseract'
+                })
+        except Exception as e:
+            print(f"Tesseract not available: {str(e)}")
+        
+        return jsonify({
+            'languages': DEFAULT_LANGUAGES,
+            'total': len(DEFAULT_LANGUAGES),
+            'source': 'default'
+        })
+        
+    except Exception as e:
+        print(f"Error in get_languages: {str(e)}")
+        return jsonify({
+            'languages': DEFAULT_LANGUAGES,
+            'total': len(DEFAULT_LANGUAGES),
+            'source': 'default',
+            'error': str(e)
+        })
+
+# ===============================
+# UPLOAD FILE - MAIN CONTROLLER
 # ===============================
 def upload_file():
     """Controller to handle file upload and OCR processing with sanitization and progress"""
     try:
         start_time = time.time()
+        
+        # ✅ Ensure directories exist
+        ensure_directories()
         
         if 'file' not in request.files:
             return jsonify({'error': 'No file provided'}), 400
@@ -265,10 +286,13 @@ def upload_file():
         # ===============================
         # FILE SANITIZATION
         # ===============================
-        is_safe, sanitize_result = file_sanitizer.sanitize(file)
-        
-        if not is_safe:
-            return jsonify({'error': sanitize_result}), 400
+        try:
+            is_safe, sanitize_result = file_sanitizer.sanitize(file)
+            if not is_safe:
+                return jsonify({'error': sanitize_result}), 400
+        except Exception as e:
+            print(f"⚠️ Sanitization warning: {e}")
+            # Continue even if sanitizer fails
         
         # ===============================
         # PROGRESS TRACKING
@@ -285,8 +309,7 @@ def upload_file():
         if not allowed_file(file.filename):
             return jsonify({'error': 'File type not allowed'}), 400
         
-        # Only Tesseract engine is supported now
-        engine = 'tesseract'
+        engine = request.form.get('engine', 'tesseract')
         language_param = request.form.get('language', 'eng')
         
         if '+' in language_param:
@@ -301,16 +324,35 @@ def upload_file():
         
         print(f"🔍 Processing with languages: {languages}")
         print(f"🔍 Engine: {engine}")
-        print(f"🔍 File sanitized: {sanitize_result}")
         
+        # ✅ Save file with secure filename
         filename = secure_filename(file.filename)
         filepath = os.path.join(Config.UPLOAD_FOLDER, filename)
+        
+        # ✅ Handle duplicate filenames
+        counter = 1
+        base, ext = os.path.splitext(filename)
+        while os.path.exists(filepath):
+            filename = f"{base}_{counter}{ext}"
+            filepath = os.path.join(Config.UPLOAD_FOLDER, filename)
+            counter += 1
+        
         file.save(filepath)
+        
+        # ✅ Verify file was saved
+        if not os.path.exists(filepath):
+            return jsonify({'error': 'Failed to save file'}), 500
+        
+        file_size = os.path.getsize(filepath)
+        print(f"✅ File saved: {filepath} ({file_size} bytes)")
         
         extracted_text = ""
         exact_confidence = 0
         confidence_data = {}
         
+        # ===============================
+        # PROCESS WITH TESSERACT
+        # ===============================
         print("🔍 Using Tesseract OCR Engine")
         progress['stage'] = 'ocr'
         progress['message'] = 'Starting Tesseract OCR...'
@@ -343,7 +385,7 @@ def upload_file():
                     
                     if is_indic_language(languages):
                         img_cv = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
-                        temp_path = os.path.join(Config.UPLOAD_FOLDER, f"temp_page_{i}.png")
+                        temp_path = os.path.join(Config.TEMP_FOLDER, f"temp_page_{i}.png")
                         cv2.imwrite(temp_path, img_cv)
                         processed_img = ImagePreprocessor.preprocess_for_indic_languages(temp_path)
                         pil_image = Image.fromarray(processed_img)
@@ -389,6 +431,7 @@ def upload_file():
                 
             except Exception as e:
                 print(f"❌ PDF conversion error: {str(e)}")
+                traceback.print_exc()
                 return jsonify({'error': f'PDF conversion failed: {str(e)}'}), 500
                 
         elif filename.lower().endswith('.docx'):
@@ -441,12 +484,17 @@ def upload_file():
                 
             except Exception as e:
                 print(f"❌ Image processing error: {str(e)}")
+                traceback.print_exc()
                 return jsonify({'error': f'Image processing failed: {str(e)}'}), 500
         
-        # Save output
+        # ===============================
+        # SAVE OUTPUT
+        # ===============================
         base_name = os.path.splitext(filename)[0]
         output_file = f"{base_name}_output"
         output_path = os.path.join(Config.OUTPUT_FOLDER, output_file)
+        
+        os.makedirs(Config.OUTPUT_FOLDER, exist_ok=True)
         
         with open(f"{output_path}.txt", 'w', encoding='utf-8') as f:
             f.write(extracted_text)
@@ -461,8 +509,7 @@ def upload_file():
             'language_display': get_language_display(languages),
             'exact_confidence': exact_confidence,
             'confidence_details': confidence_data,
-            'processing_time': processing_time,
-            'sanitization': sanitize_result
+            'processing_time': processing_time
         }
         with open(f"{output_path}.json", 'w', encoding='utf-8') as f:
             json.dump(json_data, f, indent=2, ensure_ascii=False)
@@ -485,6 +532,5 @@ def upload_file():
         
     except Exception as e:
         print(f"❌ OCR Error: {str(e)}")
-        import traceback
         traceback.print_exc()
         return jsonify({'error': str(e)}), 500

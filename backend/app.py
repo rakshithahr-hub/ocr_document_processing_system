@@ -10,6 +10,20 @@ from routes.download_routes import download_bp
 # Import Configuration
 from config import Config
 
+# ✅ Ensure directories exist on startup
+def ensure_directories():
+    """Create necessary directories if they don't exist"""
+    folders = [
+        Config.UPLOAD_FOLDER,
+        Config.OUTPUT_FOLDER,
+        Config.TEMP_FOLDER
+    ]
+    for folder in folders:
+        try:
+            os.makedirs(folder, exist_ok=True)
+            print(f"✅ Directory ready: {folder}")
+        except Exception as e:
+            print(f"❌ Failed to create directory {folder}: {e}")
 
 def create_app():
     app = Flask(__name__)
@@ -17,29 +31,38 @@ def create_app():
     # Load Configuration
     app.config.from_object(Config)
 
-    # Enable CORS
+    # ✅ Ensure directories exist
+    ensure_directories()
+
+    # Enable CORS - ✅ Allow both frontend and local development
     CORS(app, resources={
-    r"/api/*": {
-        "origins": "https://ocr-document-processing-system-1.onrender.com",
-        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        "allow_headers": ["Content-Type", "Authorization"]
-    }
-})
+        r"/api/*": {
+            "origins": [
+                "https://ocr-document-processing-system-1.onrender.com",
+                "http://localhost:3000",
+                "http://localhost:5000"
+            ],
+            "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+            "allow_headers": ["Content-Type", "Authorization"]
+        }
+    })
 
     # Register Blueprints
-    # health_bp already has /api/health prefix in its definition
-    app.register_blueprint(health_bp)  # Remove url_prefix
-    # ocr_bp already has /api prefix in its definition
-    app.register_blueprint(ocr_bp)     # Remove url_prefix
-    # download_bp already has /api/download prefix in its definition
-    app.register_blueprint(download_bp) # Remove url_prefix
+    app.register_blueprint(health_bp)
+    app.register_blueprint(ocr_bp)
+    app.register_blueprint(download_bp)
 
     @app.route("/")
     def home():
         return jsonify({
             "message": "OCR Text Extraction API",
             "version": "1.0.0",
-            "status": "Running"
+            "status": "Running",
+            "directories": {
+                "uploads": os.path.exists(Config.UPLOAD_FOLDER),
+                "outputs": os.path.exists(Config.OUTPUT_FOLDER),
+                "temp": os.path.exists(Config.TEMP_FOLDER)
+            }
         })
 
     return app

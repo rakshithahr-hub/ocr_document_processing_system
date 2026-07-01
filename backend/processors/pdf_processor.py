@@ -16,19 +16,21 @@ def pdf_to_images(pdf_path):
 
     os.makedirs("temp/pdf_pages", exist_ok=True)
 
-    images = convert_from_path(
-        pdf_path,
-        poppler_path=Config.POPPLER_PATH
-    )
+    if os.name == "nt":
+        # Windows
+        images = convert_from_path(
+            pdf_path,
+            poppler_path=Config.POPPLER_PATH
+        )
+    else:
+        # Linux (Render)
+        images = convert_from_path(pdf_path)
 
     image_paths = []
 
     for index, image in enumerate(images):
-
         image_path = f"temp/pdf_pages/page_{index + 1}.png"
-
         image.save(image_path, "PNG")
-
         image_paths.append(image_path)
 
     return image_paths

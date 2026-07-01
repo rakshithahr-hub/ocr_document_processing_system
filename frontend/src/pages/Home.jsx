@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Container, Row, Col, Card, Alert, Spinner, ProgressBar } from 'react-bootstrap';
+import { Container, Row, Col, Card, Alert, ProgressBar } from 'react-bootstrap';
 import UploadCard from '../components/UploadCard';
 import EngineSelector from '../components/EngineSelector';
 import LanguageSelector from '../components/LanguageSelector';
@@ -16,8 +16,10 @@ function Home({
   ocrResults,
   loading,
   error,
+  setError,
   handleUpload,
-  handleDownload
+  handleDownload,
+  onUploadComplete  // ✅ NEW: Callback prop
 }) {
   const [progress, setProgress] = useState(0);
   const [progressMessage, setProgressMessage] = useState('');
@@ -27,7 +29,10 @@ function Home({
   const progressIntervalRef = useRef(null);
   const xhrRef = useRef(null);
 
-  const handleUploadWithProgress = async () => {
+  // ============================================
+  // SINGLE UPLOAD METHOD - XHR with progress
+  // ============================================
+  const handleUploadWithProgress = () => {
     if (!selectedFile) {
       setLocalError('Please select a file first');
       return;
@@ -39,6 +44,7 @@ function Home({
     setProgressMessage('Preparing to upload...');
     setProgressStage('uploading');
     setLocalError(null);
+    setError(null);
 
     const formData = new FormData();
     formData.append('file', selectedFile);
@@ -47,38 +53,37 @@ function Home({
 
     const xhr = new XMLHttpRequest();
     xhrRef.current = xhr;
+    
+    // ✅ CORRECT URL - Using your Render backend
     xhr.open('POST', 'https://ocr-document-processing-system.onrender.com/api/upload');
     
     // ===============================
-    // PHASE 1: UPLOAD PROGRESS (0% - 100% of upload)
-    // Message: "Uploading: X%"
+    // PHASE 1: UPLOAD PROGRESS
     // ===============================
     xhr.upload.onprogress = (event) => {
       if (event.lengthComputable) {
         const percent = Math.round((event.loaded / event.total) * 100);
         setProgress(percent);
-        //setProgressMessage(`Uploading: ${percent}%`);
+        setProgressMessage(`Uploading: ${percent}%`);
         setProgressStage('uploading');
       }
     };
 
     // ===============================
-    // PHASE 2: UPLOAD COMPLETE → PROCESSING START
-    // Once upload is 100%, switch to "Processing..."
+    // PHASE 2: UPLOAD COMPLETE → PROCESSING
     // ===============================
     xhr.upload.onload = () => {
-      // Upload complete, switch to processing
       setProgressMessage('Upload complete! Starting OCR processing...');
       setProgressStage('processing');
-      setProgress(100); // Show 100% for upload phase briefly
+      setProgress(100);
       
-      // After a short delay, reset progress for processing phase
+      // Reset progress for processing phase
       setTimeout(() => {
         setProgress(0);
         setProgressMessage('OCR Processing in progress...');
         setProgressStage('processing');
         
-        // Start processing simulation (0% to 95%)
+        // Simulate processing progress
         let processingProgress = 0;
         progressIntervalRef.current = setInterval(() => {
           processingProgress += Math.random() * 2 + 0.5;
@@ -88,13 +93,13 @@ function Home({
             progressIntervalRef.current = null;
           }
           setProgress(Math.min(processingProgress, 95));
-         // setProgressMessage(`Processing: ${Math.round(Math.min(processingProgress, 95))}%`);
+          setProgressMessage(`Processing: ${Math.round(Math.min(processingProgress, 95))}%`);
         }, 300);
       }, 800);
     };
 
     // ===============================
-    // PHASE 3: RESPONSE RECEIVED → COMPLETE
+    // PHASE 3: RESPONSE RECEIVED
     // ===============================
     xhr.onload = () => {
       // Clear processing interval
@@ -106,18 +111,28 @@ function Home({
       setIsProcessing(false);
       
       if (xhr.status === 200) {
-        const response = JSON.parse(xhr.responseText);
-        setProgress(100);
-        setProgressMessage('Complete! ✅');
-        setProgressStage('complete');
-        // Call the parent's handleUpload
-        handleUpload();
+        try {
+          const response = JSON.parse(xhr.responseText);
+          setProgress(100);
+          setProgressMessage('Complete! ✅');
+          setProgressStage('complete');
+          
+          // ✅ Call the callback with the response
+          onUploadComplete(response);
+          
+        } catch (parseError) {
+          setLocalError('Failed to parse server response');
+          setProgressStage('error');
+        }
       } else {
         try {
           const response = JSON.parse(xhr.responseText);
-          setLocalError(response.error || 'Processing failed');
+          const errorMsg = response.error || 'Processing failed';
+          setLocalError(errorMsg);
+          setError(errorMsg);
         } catch {
-          setLocalError('Processing failed. Please try again.');
+          setLocalError(`Server error: ${xhr.status}`);
+          setError(`Server error: ${xhr.status}`);
         }
         setProgress(0);
         setProgressStage('error');
@@ -130,7 +145,9 @@ function Home({
         progressIntervalRef.current = null;
       }
       setIsProcessing(false);
-      setLocalError('Network error. Please check your connection.');
+      const errorMsg = 'Network error. Please check your connection.';
+      setLocalError(errorMsg);
+      setError(errorMsg);
       setProgress(0);
       setProgressStage('error');
     };
@@ -149,19 +166,38 @@ function Home({
     xhr.send(formData);
   };
 
-  const handleUploadClick = async () => {
+  // ============================================
+  // SINGLE CLICK HANDLER - Only XHR method
+  // ============================================
+  const handleUploadClick = () => {
     if (!selectedFile) {
       setLocalError('Please select a file first');
       return;
     }
-    // Reset progress and start
     setProgress(0);
     setProgressMessage('Starting...');
     setProgressStage('idle');
-    await handleUploadWithProgress();
+    handleUploadWithProgress(); // ✅ ONLY this one
   };
 
-  // Get progress bar variant based on stage
+  // ============================================
+  // Cancel upload
+  // ============================================
+  const handleCancelUpload = () => {
+    if (xhrRef.current) {
+      xhrRef.current.abort();
+      xhrRef.current = null;
+    }
+    if (progressIntervalRef.current) {
+      clearInterval(progressIntervalRef.current);
+      progressIntervalRef.current = null;
+    }
+    setIsProcessing(false);
+    setProgress(0);
+    setProgressMessage('Upload cancelled');
+    setProgressStage('idle');
+  };
+
   const getProgressVariant = () => {
     switch(progressStage) {
       case 'uploading': return 'info';
@@ -172,7 +208,6 @@ function Home({
     }
   };
 
-  // Get progress bar animated state
   const isAnimated = () => {
     return progressStage === 'uploading' || progressStage === 'processing';
   };
@@ -193,6 +228,7 @@ function Home({
               <UploadCard
                 selectedFile={selectedFile}
                 setSelectedFile={setSelectedFile}
+                isProcessing={isProcessing || loading}
               />
 
               <Row className="mt-4">
@@ -211,15 +247,31 @@ function Home({
               </Row>
 
               <div className="text-center mt-4">
-                <OCRButton
-                  onClick={handleUploadClick}
-                  loading={isProcessing || loading}
-                  disabled={!selectedFile || isProcessing || loading}
-                />
+                {isProcessing ? (
+                  <div className="d-flex justify-content-center gap-2">
+                    <OCRButton
+                      onClick={handleUploadClick}
+                      loading={isProcessing || loading}
+                      disabled={true}
+                    />
+                    <button
+                      className="btn btn-outline-danger"
+                      onClick={handleCancelUpload}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <OCRButton
+                    onClick={handleUploadClick}
+                    loading={isProcessing || loading}
+                    disabled={!selectedFile || isProcessing || loading}
+                  />
+                )}
               </div>
 
               {/* Progress Bar */}
-              {isProcessing && (
+              {(isProcessing || progress > 0) && (
                 <div className="mt-4">
                   <div className="d-flex justify-content-between mb-1">
                     <small className="text-muted">
@@ -243,11 +295,13 @@ function Home({
                 </div>
               )}
 
-              
-
               {displayError && (
-                <Alert variant="danger" className="mt-3">
-                  {displayError}
+                <Alert variant="danger" className="mt-3" dismissible onClose={() => {
+                  setLocalError(null);
+                  setError(null);
+                }}>
+                  <Alert.Heading>Error</Alert.Heading>
+                  <p>{displayError}</p>
                 </Alert>
               )}
 

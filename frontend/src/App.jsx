@@ -5,7 +5,7 @@ import './App.css';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import About from './pages/About';
-import { uploadFile, downloadTXT, downloadPDF, downloadJSON } from './services/api';
+import { downloadTXT, downloadPDF, downloadJSON } from './services/api';
 
 // Language name mapping for display
 const LANGUAGE_DISPLAY_NAMES = {
@@ -66,6 +66,16 @@ function App() {
     return LANGUAGE_DISPLAY_NAMES[langCode] || langCode;
   };
 
+  // ✅ NEW: Callback function to handle upload completion from Home
+  const handleUploadComplete = (result) => {
+    // Add the selected language display name to results
+    result.selected_language_display = getLanguageDisplayName(selectedLanguage);
+    setOcrResults(result);
+    setLoading(false);
+    setError(null);
+  };
+
+  // ✅ UPDATED: handleUpload now returns a promise for compatibility
   const handleUpload = async () => {
     if (!selectedFile) {
       setError('Please select a file first');
@@ -76,39 +86,33 @@ function App() {
     setError(null);
     setOcrResults(null);
 
-    const formData = new FormData();
-    formData.append('file', selectedFile);
-    formData.append('engine', selectedEngine);
-    formData.append('language', selectedLanguage);
-
-    try {
-      const result = await uploadFile(formData);
-      // Add the selected language display name to results
-      result.selected_language_display = getLanguageDisplayName(selectedLanguage);
-      setOcrResults(result);
-    } catch (err) {
-      setError(err.response?.data?.error || 'Failed to process file');
-    } finally {
-      setLoading(false);
-    }
+    // Return promise so Home can await if needed
+    return new Promise((resolve, reject) => {
+      // The actual upload is handled in Home with XHR
+      // This is just for state management
+      resolve();
+    });
   };
 
   const handleDownload = async (format, filename) => {
-    let url;
-    switch (format) {
-      case 'txt':
-        url = await downloadTXT(filename);
-        break;
-      case 'pdf':
-        url = await downloadPDF(filename);
-        break;
-      case 'json':
-        url = await downloadJSON(filename);
-        break;
-      default:
-        return;
+    try {
+      switch (format) {
+        case 'txt':
+          await downloadTXT(filename);
+          break;
+        case 'pdf':
+          await downloadPDF(filename);
+          break;
+        case 'json':
+          await downloadJSON(filename);
+          break;
+        default:
+          return;
+      }
+    } catch (error) {
+      console.error('Download error:', error);
+      setError('Failed to download file');
     }
-    window.open(url, '_blank');
   };
 
   return (
@@ -127,8 +131,10 @@ function App() {
               ocrResults={ocrResults}
               loading={loading}
               error={error}
+              setError={setError}
               handleUpload={handleUpload}
               handleDownload={handleDownload}
+              onUploadComplete={handleUploadComplete}  // ✅ NEW prop
             />
           } />
           <Route path="/about" element={<About />} />

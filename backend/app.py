@@ -19,12 +19,12 @@ def create_app():
 
     # Enable CORS
     CORS(app, resources={
-        r"/api/*": {
-            "origins": "*",
-            "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-            "allow_headers": ["Content-Type", "Authorization"]
-        }
-    })
+    r"/api/*": {
+        "origins": "https://ocr-document-processing-system-1.onrender.com",
+        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization"]
+    }
+})
 
     # Register Blueprints
     # health_bp already has /api/health prefix in its definition

@@ -2,7 +2,7 @@ import axios from "axios";
 
 // Flask Backend Base URL
 const API = axios.create({
-  baseURL: "https://ocr-document-processing-system.onrender.com",
+  baseURL: "https://ocr-document-processing-system.onrender.com/api",
   headers: {
     "Content-Type": "multipart/form-data",
   },
@@ -12,7 +12,7 @@ const API = axios.create({
 // Upload & OCR
 // ===============================
 export const uploadFile = async (formData) => {
-  const response = await API.post("/api/upload", formData);
+  const response = await API.post("/upload", formData);
   return response.data;
 };
 
@@ -20,7 +20,7 @@ export const uploadFile = async (formData) => {
 // Get Installed Languages
 // ===============================
 export const getLanguages = async () => {
-  const response = await API.get("/api/languages");
+  const response = await API.get("/languages");
   return response.data;
 };
 
@@ -29,7 +29,7 @@ export const getLanguages = async () => {
 // ===============================
 export const downloadTXT = async (filename) => {
   try {
-    const response = await API.get(`/api/download/txt/${filename}`, {
+    const response = await API.get(`/download/txt/${filename}`, {
       responseType: 'blob'
     });
     
@@ -55,7 +55,7 @@ export const downloadTXT = async (filename) => {
 // ===============================
 export const downloadPDF = async (filename) => {
   try {
-    const response = await API.get(`/api/download/pdf/${filename}`, {
+    const response = await API.get(`/download/pdf/${filename}`, {
       responseType: 'blob'
     });
     
@@ -80,7 +80,7 @@ export const downloadPDF = async (filename) => {
 // ===============================
 export const downloadJSON = async (filename) => {
   try {
-    const response = await API.get(`/api/download/json/${filename}`, {
+    const response = await API.get(`/download/json/${filename}`, {
       responseType: 'blob'
     });
     

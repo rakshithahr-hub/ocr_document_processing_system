@@ -19,110 +19,89 @@ class OutputGenerator:
             f"ocr_result_{timestamp}.{extension}"
         )
 
-    # ---------------------------------------
-    # Generate TXT
-    # ---------------------------------------
+    # -----------------------------
+    # TXT
+    # -----------------------------
     def save_txt(self, text):
+        try:
+            filepath = self._generate_filename("txt")
 
-        filepath = self._generate_filename("txt")
+            with open(filepath, "w", encoding="utf-8") as file:
+                file.write(text or "")
 
-        with open(filepath, "w", encoding="utf-8") as file:
-            file.write(text)
+            return filepath
 
-        return filepath
+        except Exception as e:
+            return {"error": str(e)}
 
-    # ---------------------------------------
-    # Generate JSON
-    # ---------------------------------------
-    def save_json(
-        self,
-        text,
-        confidence,
-        processing_time,
-        file_type,
-        pages
-    ):
+    # -----------------------------
+    # JSON
+    # -----------------------------
+    def save_json(self, text, confidence, processing_time, file_type, pages):
+        try:
+            filepath = self._generate_filename("json")
 
-        filepath = self._generate_filename("json")
+            data = {
+                "status": "success",
+                "file_type": file_type,
+                "pages": pages,
+                "confidence": confidence,
+                "processing_time": processing_time,
+                "text": text or ""
+            }
 
-        data = {
-            "status": "success",
-            "file_type": file_type,
-            "pages": pages,
-            "confidence": confidence,
-            "processing_time": processing_time,
-            "text": text
-        }
+            with open(filepath, "w", encoding="utf-8") as file:
+                json.dump(data, file, indent=4, ensure_ascii=False)
 
-        with open(filepath, "w", encoding="utf-8") as file:
-            json.dump(
-                data,
-                file,
-                indent=4,
-                ensure_ascii=False
-            )
+            return filepath
 
-        return filepath
+        except Exception as e:
+            return {"error": str(e)}
 
-    # ---------------------------------------
-    # Generate PDF
-    # ---------------------------------------
+    # -----------------------------
+    # PDF (SAFE VERSION)
+    # -----------------------------
     def save_pdf(self, text):
+        try:
+            filepath = self._generate_filename("pdf")
 
-        filepath = self._generate_filename("pdf")
+            styles = getSampleStyleSheet()
+            document = SimpleDocTemplate(filepath, pagesize=A4)
 
-        styles = getSampleStyleSheet()
+            story = []
 
-        document = SimpleDocTemplate(
-            filepath,
-            pagesize=A4
-        )
+            if not text:
+                story.append(Paragraph("No text extracted", styles["BodyText"]))
+            else:
+                for line in text.split("\n"):
+                    line = line.strip()
 
-        story = []
+                    if not line:
+                        continue
 
-        paragraphs = text.split("\n")
+                    # prevent PDF crash on long text
+                    if len(line) > 1000:
+                        line = line[:1000] + "..."
 
-        for line in paragraphs:
+                    story.append(Paragraph(line, styles["BodyText"]))
 
-            if line.strip():
-                story.append(
-                    Paragraph(line, styles["BodyText"])
-                )
+            document.build(story)
 
-        document.build(story)
+            return filepath
 
-        return filepath
+        except Exception as e:
+            return {"error": str(e)}
 
-    # ---------------------------------------
-    # Generate All Outputs
-    # ---------------------------------------
-    def generate_outputs(
-        self,
-        text,
-        confidence,
-        processing_time,
-        file_type,
-        pages
-    ):
-
+    # -----------------------------
+    # MAIN
+    # -----------------------------
+    def generate_outputs(self, text, confidence, processing_time, file_type, pages):
         txt_path = self.save_txt(text)
-
-        json_path = self.save_json(
-            text=text,
-            confidence=confidence,
-            processing_time=processing_time,
-            file_type=file_type,
-            pages=pages
-        )
-
+        json_path = self.save_json(text, confidence, processing_time, file_type, pages)
         pdf_path = self.save_pdf(text)
 
         return {
-
             "txt": txt_path,
-
             "json": json_path,
-
             "pdf": pdf_path
-
         }

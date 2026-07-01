@@ -1,10 +1,11 @@
 import os
 from services.ocr_factory import OCRFactory
+from PIL import Image
 
 
 class ImageProcessor:
     """
-    Process image files and perform OCR.
+    Process image files and perform OCR safely.
     """
 
     def __init__(self, engine_name="tesseract"):
@@ -12,32 +13,47 @@ class ImageProcessor:
 
     def process(self, image_path, language="eng"):
         """
-        Perform OCR on an image.
-
-        Args:
-            image_path (str): Path to image.
-            language (str): OCR language.
-
-        Returns:
-            dict
+        Perform OCR on an image safely.
         """
 
-        if not os.path.exists(image_path):
+        # =========================
+        # 1. Validate file existence
+        # =========================
+        if not image_path or not os.path.exists(image_path):
             return {
                 "status": "error",
                 "message": "Image file not found."
             }
 
-        result = self.engine.extract_text(
-            image_path=image_path,
-            language=language
-        )
+        try:
+            # =========================
+            # 2. Validate image integrity
+            # =========================
+            with Image.open(image_path) as img:
+                img.verify()  # checks corruption
 
-        return {
-            "status": "success",
-            "file_type": "image",
-            "filename": os.path.basename(image_path),
-            "text": result["text"],
-            "confidence": result["confidence"],
-            "processing_time": result["processing_time"]
-        }
+            # reopen after verify (PIL requirement)
+            Image.open(image_path)
+
+            # =========================
+            # 3. OCR processing
+            # =========================
+            result = self.engine.extract_text(
+                image_path=image_path,
+                language=language
+            )
+
+            return {
+                "status": "success",
+                "file_type": "image",
+                "filename": os.path.basename(image_path),
+                "text": result.get("text", ""),
+                "confidence": result.get("confidence", 0),
+                "processing_time": result.get("processing_time", 0)
+            }
+
+        except Exception as e:
+            return {
+                "status": "error",
+                "message": f"OCR failed: {str(e)}"
+            }

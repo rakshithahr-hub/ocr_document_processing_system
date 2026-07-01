@@ -11,9 +11,6 @@ from werkzeug.utils import secure_filename
 from config import Config
 import time
 
-# Import EasyOCR service
-from services.easyocr import get_easyocr_service, EasyOCRService
-
 # Import sanitizer
 from utils.file_sanitizer import file_sanitizer
 
@@ -23,7 +20,30 @@ POPPLER_PATH = r"C:\poppler\bin"
 # ===============================
 # Language mapping
 # ===============================
-LANGUAGE_MAP = EasyOCRService.LANGUAGE_MAP
+LANGUAGE_MAP = {
+    'eng': 'English',
+    'kan': 'Kannada',
+    'hin': 'Hindi',
+    'tam': 'Tamil',
+    'tel': 'Telugu',
+    'mal': 'Malayalam',
+    'ben': 'Bengali',
+    'guj': 'Gujarati',
+    'mar': 'Marathi',
+    'ori': 'Odia',
+    'pan': 'Punjabi',
+    'urd': 'Urdu',
+    'fra': 'French',
+    'deu': 'German',
+    'spa': 'Spanish',
+    'ita': 'Italian',
+    'por': 'Portuguese',
+    'rus': 'Russian',
+    'jpn': 'Japanese',
+    'kor': 'Korean',
+    'chi_sim': 'Chinese (Simplified)',
+    'chi_tra': 'Chinese (Traditional)'
+}
 
 DEFAULT_LANGUAGES = [
     {'code': 'eng', 'name': 'English'},
@@ -265,7 +285,8 @@ def upload_file():
         if not allowed_file(file.filename):
             return jsonify({'error': 'File type not allowed'}), 400
         
-        engine = request.form.get('engine', 'tesseract')
+        # Only Tesseract engine is supported now
+        engine = 'tesseract'
         language_param = request.form.get('language', 'eng')
         
         if '+' in language_param:
@@ -290,228 +311,137 @@ def upload_file():
         exact_confidence = 0
         confidence_data = {}
         
-        if engine == 'tesseract':
-            print("🔍 Using Tesseract OCR Engine")
-            progress['stage'] = 'ocr'
-            progress['message'] = 'Starting Tesseract OCR...'
-            
-            if filename.lower().endswith('.pdf'):
-                try:
-                    progress['stage'] = 'converting'
-                    progress['message'] = 'Converting PDF to images...'
+        print("🔍 Using Tesseract OCR Engine")
+        progress['stage'] = 'ocr'
+        progress['message'] = 'Starting Tesseract OCR...'
+        
+        if filename.lower().endswith('.pdf'):
+            try:
+                progress['stage'] = 'converting'
+                progress['message'] = 'Converting PDF to images...'
+                
+                images = pdf2image.convert_from_path(
+                    filepath, 
+                    poppler_path=POPPLER_PATH,
+                    dpi=150
+                )
+                total_pages = len(images)
+                progress['total_pages'] = total_pages
+                progress['stage'] = 'ocr'
+                
+                print(f"✅ Converted {total_pages} PDF pages")
+                
+                all_confidences = []
+                
+                for i, image in enumerate(images):
+                    current_page = i + 1
+                    progress['current_page'] = current_page
+                    progress['percentage'] = round((current_page / total_pages) * 100, 1)
+                    progress['message'] = f'Processing page {current_page}/{total_pages}...'
                     
-                    images = pdf2image.convert_from_path(
-                        filepath, 
-                        poppler_path=POPPLER_PATH,
-                        dpi=150
-                    )
-                    total_pages = len(images)
-                    progress['total_pages'] = total_pages
-                    progress['stage'] = 'ocr'
-                    
-                    print(f"✅ Converted {total_pages} PDF pages")
-                    
-                    all_confidences = []
-                    
-                    for i, image in enumerate(images):
-                        current_page = i + 1
-                        progress['current_page'] = current_page
-                        progress['percentage'] = round((current_page / total_pages) * 100, 1)
-                        progress['message'] = f'Processing page {current_page}/{total_pages}...'
-                        
-                        print(f"📊 Progress: {progress['percentage']:.1f}% - Page {current_page}/{total_pages}")
-                        
-                        if is_indic_language(languages):
-                            img_cv = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
-                            temp_path = os.path.join(Config.UPLOAD_FOLDER, f"temp_page_{i}.png")
-                            cv2.imwrite(temp_path, img_cv)
-                            processed_img = ImagePreprocessor.preprocess_for_indic_languages(temp_path)
-                            pil_image = Image.fromarray(processed_img)
-                            if os.path.exists(temp_path):
-                                os.remove(temp_path)
-                        else:
-                            pil_image = image
-                        
-                        text = pytesseract.image_to_string(
-                            pil_image,
-                            lang=tesseract_langs,
-                            config='--psm 6 --oem 3'
-                        )
-                        
-                        extracted_text += f"\n--- Page {current_page} ---\n"
-                        extracted_text += text + "\n"
-                        
-                        confidence_result = calculate_tesseract_confidence(pil_image, tesseract_langs)
-                        all_confidences.append(confidence_result)
-                        
-                        print(f"📊 Page {current_page} Confidence: {confidence_result.get('exact_confidence', 0)}%")
-                    
-                    # Calculate overall confidence
-                    total_chars = sum([r.get('total_characters', 0) for r in all_confidences])
-                    if total_chars > 0:
-                        weighted_sum = sum([r.get('exact_confidence', 0) * r.get('total_characters', 0) 
-                                          for r in all_confidences])
-                        exact_confidence = round(weighted_sum / total_chars, 2)
-                    
-                    confidence_data = {
-                        'exact_confidence': exact_confidence,
-                        'total_pages': total_pages,
-                        'pages_processed': len([r for r in all_confidences if r.get('exact_confidence', 0) > 0]),
-                        'engine': 'tesseract',
-                        'languages': languages,
-                        'language_display': get_language_display(languages)
-                    }
-                    
-                    progress['percentage'] = 100
-                    progress['message'] = 'Complete!'
-                    
-                    print(f"📊 Overall Confidence: {exact_confidence}%")
-                    
-                except Exception as e:
-                    print(f"❌ PDF conversion error: {str(e)}")
-                    return jsonify({'error': f'PDF conversion failed: {str(e)}'}), 500
-                    
-            elif filename.lower().endswith('.docx'):
-                try:
-                    extracted_text = extract_text_from_docx(filepath)
-                    exact_confidence = 100.0
-                    confidence_data = {
-                        'exact_confidence': 100.0,
-                        'total_pages': 1,
-                        'engine': 'tesseract',
-                        'languages': languages,
-                        'language_display': get_language_display(languages)
-                    }
-                    progress['percentage'] = 100
-                    progress['message'] = 'Complete!'
-                except Exception as e:
-                    return jsonify({'error': f'DOCX processing failed: {str(e)}'}), 500
-            else:
-                try:
-                    progress['message'] = 'Processing image...'
-                    progress['percentage'] = 50
+                    print(f"📊 Progress: {progress['percentage']:.1f}% - Page {current_page}/{total_pages}")
                     
                     if is_indic_language(languages):
-                        processed_img = ImagePreprocessor.preprocess_for_indic_languages(filepath)
+                        img_cv = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
+                        temp_path = os.path.join(Config.UPLOAD_FOLDER, f"temp_page_{i}.png")
+                        cv2.imwrite(temp_path, img_cv)
+                        processed_img = ImagePreprocessor.preprocess_for_indic_languages(temp_path)
                         pil_image = Image.fromarray(processed_img)
+                        if os.path.exists(temp_path):
+                            os.remove(temp_path)
                     else:
-                        pil_image = Image.open(filepath)
+                        pil_image = image
                     
-                    extracted_text = pytesseract.image_to_string(
+                    text = pytesseract.image_to_string(
                         pil_image,
                         lang=tesseract_langs,
                         config='--psm 6 --oem 3'
                     )
                     
+                    extracted_text += f"\n--- Page {current_page} ---\n"
+                    extracted_text += text + "\n"
+                    
                     confidence_result = calculate_tesseract_confidence(pil_image, tesseract_langs)
-                    exact_confidence = confidence_result.get('exact_confidence', 0)
+                    all_confidences.append(confidence_result)
                     
-                    confidence_data = {
-                        'exact_confidence': exact_confidence,
-                        'total_pages': 1,
-                        'engine': 'tesseract',
-                        'languages': languages,
-                        'language_display': get_language_display(languages)
-                    }
-                    
-                    progress['percentage'] = 100
-                    progress['message'] = 'Complete!'
-                    
-                    print(f"📊 Confidence: {exact_confidence}%")
-                    
-                except Exception as e:
-                    print(f"❌ Image processing error: {str(e)}")
-                    return jsonify({'error': f'Image processing failed: {str(e)}'}), 500
-        
-        elif engine == 'easyocr':
-            print("🔍 Using EasyOCR Engine")
-            progress['stage'] = 'ocr'
-            progress['message'] = 'Starting EasyOCR...'
-            
-            try:
-                easyocr_service = get_easyocr_service(languages, gpu=False)
+                    print(f"📊 Page {current_page} Confidence: {confidence_result.get('exact_confidence', 0)}%")
                 
-                if filename.lower().endswith('.pdf'):
-                    progress['stage'] = 'converting'
-                    progress['message'] = 'Converting PDF to images...'
-                    
-                    images = pdf2image.convert_from_path(
-                        filepath, 
-                        poppler_path=POPPLER_PATH,
-                        dpi=150
-                    )
-                    total_pages = len(images)
-                    progress['total_pages'] = total_pages
-                    progress['stage'] = 'ocr'
-                    
-                    print(f"✅ Converted {total_pages} PDF pages")
-                    
-                    result = easyocr_service.extract_text_from_pdf(images)
-                    
-                    if result['status'] == 'success':
-                        extracted_text = result['full_text']
-                        exact_confidence = result['overall_confidence']
-                        
-                        confidence_data = {
-                            'exact_confidence': exact_confidence,
-                            'total_pages': result['total_pages'],
-                            'pages_processed': len(result['pages']),
-                            'page_confidences': [p.get('confidence', 0) for p in result['pages']],
-                            'engine': 'easyocr',
-                            'languages': languages,
-                            'language_display': get_language_display(languages)
-                        }
-                        
-                        progress['percentage'] = 100
-                        progress['message'] = 'Complete!'
-                        
-                        print(f"📊 Overall Confidence: {exact_confidence}%")
-                    else:
-                        return jsonify({'error': 'EasyOCR processing failed'}), 500
-                        
-                elif filename.lower().endswith('.docx'):
-                    extracted_text = extract_text_from_docx(filepath)
-                    exact_confidence = 100.0
-                    confidence_data = {
-                        'exact_confidence': 100.0,
-                        'total_pages': 1,
-                        'engine': 'easyocr',
-                        'languages': languages,
-                        'language_display': get_language_display(languages)
-                    }
-                    progress['percentage'] = 100
-                    progress['message'] = 'Complete!'
-                else:
-                    progress['message'] = 'Processing image...'
-                    progress['percentage'] = 50
-                    
-                    pil_image = Image.open(filepath)
-                    result = easyocr_service.extract_text(pil_image)
-                    
-                    if result['status'] == 'success':
-                        extracted_text = result['text']
-                        exact_confidence = result['confidence']
-                        
-                        confidence_data = {
-                            'exact_confidence': exact_confidence,
-                            'total_pages': 1,
-                            'word_count': result['word_count'],
-                            'word_details': result['word_details'],
-                            'engine': 'easyocr',
-                            'languages': languages,
-                            'language_display': get_language_display(languages)
-                        }
-                        
-                        progress['percentage'] = 100
-                        progress['message'] = 'Complete!'
-                        
-                        print(f"📊 Confidence: {exact_confidence}%")
-                    else:
-                        return jsonify({'error': result.get('error', 'EasyOCR processing failed')}), 500
+                # Calculate overall confidence
+                total_chars = sum([r.get('total_characters', 0) for r in all_confidences])
+                if total_chars > 0:
+                    weighted_sum = sum([r.get('exact_confidence', 0) * r.get('total_characters', 0) 
+                                      for r in all_confidences])
+                    exact_confidence = round(weighted_sum / total_chars, 2)
+                
+                confidence_data = {
+                    'exact_confidence': exact_confidence,
+                    'total_pages': total_pages,
+                    'pages_processed': len([r for r in all_confidences if r.get('exact_confidence', 0) > 0]),
+                    'engine': 'tesseract',
+                    'languages': languages,
+                    'language_display': get_language_display(languages)
+                }
+                
+                progress['percentage'] = 100
+                progress['message'] = 'Complete!'
+                
+                print(f"📊 Overall Confidence: {exact_confidence}%")
                 
             except Exception as e:
-                print(f"❌ EasyOCR error: {str(e)}")
-                return jsonify({'error': f'EasyOCR processing failed: {str(e)}'}), 500
+                print(f"❌ PDF conversion error: {str(e)}")
+                return jsonify({'error': f'PDF conversion failed: {str(e)}'}), 500
+                
+        elif filename.lower().endswith('.docx'):
+            try:
+                extracted_text = extract_text_from_docx(filepath)
+                exact_confidence = 100.0
+                confidence_data = {
+                    'exact_confidence': 100.0,
+                    'total_pages': 1,
+                    'engine': 'tesseract',
+                    'languages': languages,
+                    'language_display': get_language_display(languages)
+                }
+                progress['percentage'] = 100
+                progress['message'] = 'Complete!'
+            except Exception as e:
+                return jsonify({'error': f'DOCX processing failed: {str(e)}'}), 500
+        else:
+            try:
+                progress['message'] = 'Processing image...'
+                progress['percentage'] = 50
+                
+                if is_indic_language(languages):
+                    processed_img = ImagePreprocessor.preprocess_for_indic_languages(filepath)
+                    pil_image = Image.fromarray(processed_img)
+                else:
+                    pil_image = Image.open(filepath)
+                
+                extracted_text = pytesseract.image_to_string(
+                    pil_image,
+                    lang=tesseract_langs,
+                    config='--psm 6 --oem 3'
+                )
+                
+                confidence_result = calculate_tesseract_confidence(pil_image, tesseract_langs)
+                exact_confidence = confidence_result.get('exact_confidence', 0)
+                
+                confidence_data = {
+                    'exact_confidence': exact_confidence,
+                    'total_pages': 1,
+                    'engine': 'tesseract',
+                    'languages': languages,
+                    'language_display': get_language_display(languages)
+                }
+                
+                progress['percentage'] = 100
+                progress['message'] = 'Complete!'
+                
+                print(f"📊 Confidence: {exact_confidence}%")
+                
+            except Exception as e:
+                print(f"❌ Image processing error: {str(e)}")
+                return jsonify({'error': f'Image processing failed: {str(e)}'}), 500
         
         # Save output
         base_name = os.path.splitext(filename)[0]

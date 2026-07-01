@@ -47,7 +47,7 @@ function Home({
 
     const xhr = new XMLHttpRequest();
     xhrRef.current = xhr;
-    xhr.open('POST', 'http://127.0.0.1:5000/api/upload');
+    xhr.open('POST', 'https://ocr-document-processing-system.onrender.com/api/upload');
     
     // ===============================
     // PHASE 1: UPLOAD PROGRESS (0% - 100% of upload)

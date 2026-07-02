@@ -55,7 +55,7 @@ function Home({
     xhrRef.current = xhr;
     
     // ✅ CORRECT URL - Using your Render backend
-    xhr.open('POST', 'https://ocr-document-processing-system.onrender.com/api/upload');
+    xhr.open('POST', 'https://ocr-document-processing-system-2.onrender.com/api/upload');
     
     // ===============================
     // PHASE 1: UPLOAD PROGRESS

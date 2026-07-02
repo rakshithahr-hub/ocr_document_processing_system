@@ -2,7 +2,7 @@ import axios from "axios";
 
 // Flask Backend Base URL
 const API = axios.create({
-  baseURL: "https://ocr-document-processing-system.onrender.com/api",
+  baseURL: "https://ocr-document-processing-system-2.onrender.com/api",
   headers: {
     "Content-Type": "multipart/form-data",
   },

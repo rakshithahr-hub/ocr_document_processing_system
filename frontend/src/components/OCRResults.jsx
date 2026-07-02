@@ -137,15 +137,7 @@ function OCRResults({ results }) {
                 <FaFileAlt className="me-1" />
                 {downloading ? 'Downloading...' : 'Download TXT'}
               </Button>
-              <Button
-                variant="danger"
-                size="sm"
-                onClick={() => handleDownload('pdf')}
-                disabled={downloading}
-              >
-                <FaFilePdf className="me-1" />
-                {downloading ? 'Downloading...' : 'Download PDF'}
-              </Button>
+              
               <Button
                 variant="info"
                 size="sm"

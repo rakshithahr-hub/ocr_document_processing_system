@@ -1,16 +1,32 @@
-# Use a Python base image
-FROM python:3.9-slim
+FROM python:3.10-slim
 
-# Install Tesseract and other system dependencies
+# Prevent Python from buffering stdout/stderr
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+# Install OCR dependencies
 RUN apt-get update && apt-get install -y \
     tesseract-ocr \
     tesseract-ocr-eng \
+    tesseract-ocr-kan \
     poppler-utils \
+    build-essential \
+    gcc \
     && rm -rf /var/lib/apt/lists/*
 
+# Create working directory
 WORKDIR /app
-COPY requirements.txt .
+
+# Copy backend files
+COPY backend/ .
+
+# Install Python packages
+RUN pip install --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
-COPY . .
-RUN mkdir -p uploads outputs temp
-CMD ["gunicorn", "app:app", "--bind", "0.0.0.0:10000"]
+
+# Render provides PORT environment variable
+ENV PORT=10000
+
+EXPOSE 10000
+
+CMD gunicorn --bind 0.0.0.0:$PORT app:app

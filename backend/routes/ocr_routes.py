@@ -3,10 +3,12 @@ import os
 import time
 import traceback
 import json
+import gc  # ADDED: for garbage collection
 
 import pytesseract
 from PIL import Image
 import pdf2image
+from pdf2image import convert_from_path, pdfinfo_from_path  # ADDED: specific imports
 import docx
 import cv2
 import numpy as np
@@ -76,76 +78,6 @@ def calculate_confidence(image, lang):
 
 
 # ===============================
-# PDF CONVERSION WITH FALLBACK
-# ===============================
-def convert_pdf_to_images(filepath):
-    """Convert PDF to images with multiple fallback methods"""
-    
-    # Get poppler path from config
-    poppler_path = POPPLER_PATH
-    
-    print(f"🔍 Converting PDF with poppler path: {poppler_path}")
-    
-    # Method 1: Try with explicit poppler path
-    try:
-        images = pdf2image.convert_from_path(
-            filepath,
-            poppler_path=poppler_path,
-            dpi=150,
-            fmt='jpeg'
-        )
-        if images:
-            print(f"✅ PDF converted successfully with explicit path")
-            return images
-    except Exception as e:
-        print(f"⚠️ Method 1 failed: {e}")
-    
-    # Method 2: Try without poppler path (system PATH)
-    try:
-        images = pdf2image.convert_from_path(
-            filepath,
-            dpi=150,
-            fmt='jpeg'
-        )
-        if images:
-            print(f"✅ PDF converted successfully using system PATH")
-            return images
-    except Exception as e:
-        print(f"⚠️ Method 2 failed: {e}")
-    
-    # Method 3: Try with lower DPI
-    try:
-        images = pdf2image.convert_from_path(
-            filepath,
-            poppler_path=poppler_path,
-            dpi=100,
-            fmt='jpeg'
-        )
-        if images:
-            print(f"✅ PDF converted successfully with lower DPI")
-            return images
-    except Exception as e:
-        print(f"⚠️ Method 3 failed: {e}")
-    
-    # Method 4: Try with PNG format
-    try:
-        images = pdf2image.convert_from_path(
-            filepath,
-            poppler_path=poppler_path,
-            dpi=150,
-            fmt='png'
-        )
-        if images:
-            print(f"✅ PDF converted successfully with PNG format")
-            return images
-    except Exception as e:
-        print(f"⚠️ Method 4 failed: {e}")
-    
-    # All methods failed
-    raise Exception("All PDF conversion methods failed. Poppler may not be installed.")
-
-
-# ===============================
 # MAIN OCR ROUTE
 # ===============================
 @ocr_bp.route('/upload', methods=['POST'])
@@ -204,34 +136,61 @@ def upload_file():
         # -------------------------------
         if filename.lower().endswith(".pdf"):
             try:
-                # ✅ Use the new conversion function with fallbacks
-                images = convert_pdf_to_images(upload_path)
-                
-                if not images:
-                    return jsonify({'error': 'PDF conversion failed - no images extracted'}), 500
-                
+                # OPTIMIZED: Process one page at a time to save memory
+                info = pdfinfo_from_path(
+                    upload_path,
+                    poppler_path=POPPLER_PATH if os.name == "nt" else None
+                )
+
+                total_pages = info["Pages"]
+
+                print(f"📄 Processing {total_pages} pages")
+
                 all_conf = []
-                total_pages = len(images)
-                print(f"📄 Processing {total_pages} PDF pages")
 
-                for i, img in enumerate(images):
-                    if img is None:
-                        print(f"⚠️ Page {i+1} is None, skipping...")
-                        continue
-                        
-                    page_text = pytesseract.image_to_string(
-                        img,
-                        lang=tesseract_lang,
-                        config="--psm 6 --oem 3"
-                    )
+                for page in range(1, total_pages + 1):
+                    images = None
+                    img = None
 
-                    extracted_text += f"\n--- Page {i+1} ---\n{page_text}"
+                    try:
+                        images = convert_from_path(
+                            upload_path,
+                            first_page=page,
+                            last_page=page,
+                            dpi=120,
+                            fmt="jpeg",
+                            poppler_path=POPPLER_PATH if os.name == "nt" else None
+                        )
 
-                    conf = calculate_confidence(img, tesseract_lang)
-                    all_conf.append(conf)
-                    print(f"📊 Page {i+1} confidence: {conf}%")
+                        if not images:
+                            continue
 
-                confidence = round(sum(all_conf) / len(all_conf), 2) if all_conf else 0
+                        img = images[0]
+
+                        page_text = pytesseract.image_to_string(
+                            img,
+                            lang=tesseract_lang,
+                            config="--psm 6 --oem 3"
+                        )
+
+                        extracted_text += f"\n--- Page {page} ---\n{page_text}"
+
+                        conf = calculate_confidence(img, tesseract_lang)
+                        all_conf.append(conf)
+
+                        print(f"Page {page}/{total_pages}")
+
+                    finally:
+                        if img:
+                            img.close()
+                            del img
+
+                        if images:
+                            del images
+
+                        gc.collect()
+
+                confidence = round(sum(all_conf)/len(all_conf),2) if all_conf else 0
                 
             except Exception as e:
                 print(f"❌ PDF processing error: {str(e)}")

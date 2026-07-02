@@ -20,9 +20,7 @@ function OCRResults({ results }) {
         case 'txt':
           await downloadTXT(results.filename);
           break;
-        case 'pdf':
-          await downloadPDF(results.filename);
-          break;
+        
         case 'json':
           await downloadJSON(results.filename);
           break;

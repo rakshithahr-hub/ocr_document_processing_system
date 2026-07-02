@@ -173,12 +173,19 @@ def upload_file():
                             config="--psm 6 --oem 3"
                         )
 
+                        # DEBUG: Print the extracted text for each page
+                        print(f"\n===== PAGE {page} OCR =====")
+                        print(f"Text length: {len(page_text)}")
+                        print(f"First 500 characters:")
+                        print(repr(page_text[:500]))
+                        print("===========================\n")
+
                         extracted_text += f"\n--- Page {page} ---\n{page_text}"
 
                         conf = calculate_confidence(img, tesseract_lang)
                         all_conf.append(conf)
 
-                        print(f"Page {page}/{total_pages}")
+                        print(f"Page {page}/{total_pages} - Confidence: {conf}%")
 
                     finally:
                         if img:
@@ -191,6 +198,18 @@ def upload_file():
                         gc.collect()
 
                 confidence = round(sum(all_conf)/len(all_conf),2) if all_conf else 0
+                
+                # DEBUG: Print final extracted text before returning
+                print("\n" + "="*50)
+                print("FINAL EXTRACTED TEXT SUMMARY:")
+                print("="*50)
+                print(f"TOTAL TEXT LENGTH: {len(extracted_text)}")
+                print(f"FIRST 500 CHARACTERS:")
+                print(repr(extracted_text[:500]))
+                print(f"LAST 500 CHARACTERS:")
+                print(repr(extracted_text[-500:]))
+                print(f"CONFIDENCE: {confidence}%")
+                print("="*50 + "\n")
                 
             except Exception as e:
                 print(f"❌ PDF processing error: {str(e)}")
@@ -235,6 +254,18 @@ def upload_file():
                 "languages": languages,
                 "processing_time": round(time.time() - start_time, 2)
             }, f, indent=2)
+
+        # DEBUG: Log the response being sent to frontend
+        print("\n" + "="*50)
+        print("RESPONSE BEING SENT TO FRONTEND:")
+        print("="*50)
+        print(f"Success: True")
+        print(f"Filename: {base_name}")
+        print(f"Text length: {len(extracted_text)}")
+        print(f"Text empty? {not extracted_text}")
+        print(f"First 100 chars: {repr(extracted_text[:100])}")
+        print(f"Confidence: {confidence}%")
+        print("="*50 + "\n")
 
         # -------------------------------
         # Response

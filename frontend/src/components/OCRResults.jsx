@@ -8,7 +8,7 @@ function OCRResults({ results }) {
   const [downloading, setDownloading] = useState(false);
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(results.extracted_text);
+    navigator.clipboard.writeText(results.text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -112,7 +112,7 @@ function OCRResults({ results }) {
 
         <Alert variant="secondary" className="mb-3">
           <div style={{ maxHeight: '300px', overflowY: 'auto', whiteSpace: 'pre-wrap' }}>
-            {results.extracted_text || 'No text extracted'}
+            {results.text || 'No text extracted'}
           </div>
         </Alert>
 

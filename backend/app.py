@@ -1,6 +1,7 @@
-from flask import Flask, jsonify, request, Response
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 import os
+import shutil
 import subprocess
 
 from routes.health_routes import health_bp
@@ -8,15 +9,20 @@ from routes.ocr_routes import ocr_bp
 from routes.download_routes import download_bp
 from config import Config, POPPLER_PATH
 
+
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
 
     # Store poppler path in app config
-    app.config['POPPLER_PATH'] = POPPLER_PATH
+    app.config["POPPLER_PATH"] = POPPLER_PATH
 
     # Ensure directories exist
-    for folder in [Config.UPLOAD_FOLDER, Config.OUTPUT_FOLDER, Config.TEMP_FOLDER]:
+    for folder in [
+        Config.UPLOAD_FOLDER,
+        Config.OUTPUT_FOLDER,
+        Config.TEMP_FOLDER,
+    ]:
         os.makedirs(folder, exist_ok=True)
         print(f"✅ Directory ready: {folder}")
 
@@ -26,39 +32,74 @@ def create_app():
     else:
         print("ℹ️ Poppler will use system PATH")
 
-    # =============================================
-    # FIXED CORS CONFIGURATION
-    # =============================================
-    # Allow all origins for testing (temporary)
-    CORS(app, resources={
-        r"/api/*": {
-            "origins": "*",  # Allow ALL origins (for testing)
-            "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-            "allow_headers": ["*"],  # Allow all headers
-            "expose_headers": ["*"],
-            "supports_credentials": True,
-            "max_age": 3600
-        }
-    })
+    # Enable CORS
+    CORS(
+        app,
+        resources={
+            r"/api/*": {
+                "origins": [
+                    "https://ocr-document-processing-system-1.onrender.com",
+                    "https://ocr-document-processing-system.onrender.com",
+                    "http://localhost:3000",
+                    "http://localhost:5173",
+                    "http://localhost:5000",
+                    "http://127.0.0.1:3000",
+                    "http://127.0.0.1:5173",
+                ],
+                "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+                "allow_headers": [
+                    "Content-Type",
+                    "Authorization",
+                    "Accept",
+                    "Origin",
+                ],
+                "expose_headers": [
+                    "Content-Type",
+                    "Authorization",
+                ],
+                "supports_credentials": True,
+                "max_age": 3600,
+            }
+        },
+    )
 
-    # Add manual CORS headers as backup
+    # ---------------- DEBUG ROUTE ----------------
+    @app.route("/debug")
+    def debug():
+        return jsonify({
+            "tesseract_exists": os.path.exists("/usr/bin/tesseract"),
+            "tesseract_path": shutil.which("tesseract"),
+            "tesseract_version": subprocess.getoutput("tesseract --version"),
+            "pdfinfo_path": shutil.which("pdfinfo"),
+            "pdfinfo_version": subprocess.getoutput("pdfinfo -v"),
+        })
+
+    # ---------------------------------------------
+
     @app.after_request
     def after_request(response):
-        response.headers.add('Access-Control-Allow-Origin', '*')
-        response.headers.add('Access-Control-Allow-Headers', '*')
-        response.headers.add('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
-        response.headers.add('Access-Control-Allow-Credentials', 'true')
-        return response
+        origin = request.headers.get("Origin")
 
-    # Handle OPTIONS requests manually
-    @app.route('/api/<path:path>', methods=['OPTIONS'])
-    def handle_options(path):
-        response = Response()
-        response.headers.add('Access-Control-Allow-Origin', '*')
-        response.headers.add('Access-Control-Allow-Headers', '*')
-        response.headers.add('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
-        response.headers.add('Access-Control-Allow-Credentials', 'true')
-        response.status_code = 200
+        allowed_origins = [
+            "https://ocr-document-processing-system-1.onrender.com",
+            "https://ocr-document-processing-system.onrender.com",
+            "http://localhost:3000",
+            "http://localhost:5173",
+            "http://localhost:5000",
+            "http://127.0.0.1:3000",
+            "http://127.0.0.1:5173",
+        ]
+
+        if origin in allowed_origins:
+            response.headers["Access-Control-Allow-Origin"] = origin
+            response.headers["Access-Control-Allow-Credentials"] = "true"
+            response.headers["Access-Control-Allow-Headers"] = (
+                "Content-Type, Authorization, Accept"
+            )
+            response.headers["Access-Control-Allow-Methods"] = (
+                "GET, POST, PUT, DELETE, OPTIONS"
+            )
+
         return response
 
     # Register Blueprints
@@ -72,24 +113,28 @@ def create_app():
             "message": "OCR Text Extraction API",
             "version": "1.0.0",
             "status": "Running",
+            "environment": os.environ.get("ENV", "development"),
             "directories": {
                 "uploads": os.path.exists(Config.UPLOAD_FOLDER),
                 "outputs": os.path.exists(Config.OUTPUT_FOLDER),
-                "temp": os.path.exists(Config.TEMP_FOLDER)
+                "temp": os.path.exists(Config.TEMP_FOLDER),
             },
             "poppler": {
                 "path": POPPLER_PATH,
-                "available": POPPLER_PATH is not None or os.system("pdfinfo -v > /dev/null 2>&1") == 0
-            }
+                "available": POPPLER_PATH is not None
+                or os.system("pdfinfo -v > /dev/null 2>&1") == 0,
+            },
         })
 
     return app
 
+
 app = create_app()
 
 if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
     app.run(
         host="0.0.0.0",
-        port=int(os.environ.get("PORT", 5000)),
-        debug=True
+        port=port,
+        debug=os.environ.get("ENV") != "production",
     )

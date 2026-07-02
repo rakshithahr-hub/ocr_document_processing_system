@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request, Response
 from flask_cors import CORS
 import os
 import subprocess
@@ -26,18 +26,40 @@ def create_app():
     else:
         print("ℹ️ Poppler will use system PATH")
 
-    # Enable CORS
+    # =============================================
+    # FIXED CORS CONFIGURATION
+    # =============================================
+    # Allow all origins for testing (temporary)
     CORS(app, resources={
         r"/api/*": {
-            "origins": [
-                "https://ocr-document-processing-system-1.onrender.com",
-                "http://localhost:3000",
-                "http://localhost:5000"
-            ],
+            "origins": "*",  # Allow ALL origins (for testing)
             "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-            "allow_headers": ["Content-Type", "Authorization"]
+            "allow_headers": ["*"],  # Allow all headers
+            "expose_headers": ["*"],
+            "supports_credentials": True,
+            "max_age": 3600
         }
     })
+
+    # Add manual CORS headers as backup
+    @app.after_request
+    def after_request(response):
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add('Access-Control-Allow-Headers', '*')
+        response.headers.add('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+        response.headers.add('Access-Control-Allow-Credentials', 'true')
+        return response
+
+    # Handle OPTIONS requests manually
+    @app.route('/api/<path:path>', methods=['OPTIONS'])
+    def handle_options(path):
+        response = Response()
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add('Access-Control-Allow-Headers', '*')
+        response.headers.add('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+        response.headers.add('Access-Control-Allow-Credentials', 'true')
+        response.status_code = 200
+        return response
 
     # Register Blueprints
     app.register_blueprint(health_bp)

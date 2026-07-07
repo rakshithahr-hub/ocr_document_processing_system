@@ -18,7 +18,7 @@ RUN apt-get update && apt-get install -y \
     libxext6 \
     libxrender1 \
     && rm -rf /var/lib/apt/lists/*
-    libgl1-mesa-glx
+    
 
 # Create working directory
 WORKDIR /app

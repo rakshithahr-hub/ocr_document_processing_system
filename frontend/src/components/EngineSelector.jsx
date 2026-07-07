@@ -1,10 +1,12 @@
+// components/EngineSelector.jsx
+
 import React from 'react';
 import { Form } from 'react-bootstrap';
 
 function EngineSelector({ selectedEngine, setSelectedEngine }) {
-  const engines = [
+  const engineOptions = [
     { value: 'tesseract', label: 'Tesseract' },
-    
+    { value: 'easyocr', label: 'EasyOCR' },
     
   ];
 
@@ -13,10 +15,14 @@ function EngineSelector({ selectedEngine, setSelectedEngine }) {
       <Form.Label className="fw-bold">OCR Engine</Form.Label>
       <Form.Select
         value={selectedEngine}
-        onChange={(e) => setSelectedEngine(e.target.value)}
+        onChange={(e) => {
+          console.log("📊 Engine selected:", e.target.value);
+          setSelectedEngine(e.target.value);
+        }}
         className="mb-2"
       >
-        {engines.map(engine => (
+        <option value="">-- Select OCR Engine --</option>
+        {engineOptions.map((engine) => (
           <option key={engine.value} value={engine.value}>
             {engine.label}
           </option>

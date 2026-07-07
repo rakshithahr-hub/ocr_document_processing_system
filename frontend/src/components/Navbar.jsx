@@ -9,7 +9,7 @@ function Navbar() {
       <Container>
         <BSNavbar.Brand as={Link} to="/" className="d-flex align-items-center">
           <FaCamera className="me-2" size={24} />
-          <span className="fw-bold">OCR Pro</span>
+          <span className="fw-bold">OCR Document Processor</span>
         </BSNavbar.Brand>
         <BSNavbar.Toggle aria-controls="basic-navbar-nav" />
         <BSNavbar.Collapse id="basic-navbar-nav">

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Container } from 'react-bootstrap';
+import { Container, Row, Col } from 'react-bootstrap';
 import { 
   FaBrain, 
   FaFileAlt, 
@@ -14,18 +14,24 @@ import {
 } from 'react-icons/fa';
 
 function About() {
+  const ExternalLinkIcon = () => (
+    <svg style={{ width: '12px', height: '12px', display: 'inline-block', marginRight: '4px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+    </svg>
+  );
+
   return (
     <div style={{ minHeight: 'calc(100vh - 72px)', backgroundColor: '#f8f9fa' }}>
-      <Container fluid className="py-5">
+      <Container fluid className="py-5 px-0">
         {/* Hero Section */}
-        <div className="bg-primary text-white py-5 mb-5 rounded-3">
-          <Container>
+        <Container>
+          <div className="bg-primary text-white p-5 mb-5 rounded-3">
             <h1 className="display-3 fw-bold mb-3">About OCR Technology</h1>
             <p className="lead mb-0">
               Understanding Optical Character Recognition and how it transforms your documents
             </p>
-          </Container>
-        </div>
+          </div>
+        </Container>
 
         <Container>
           {/* What is OCR */}
@@ -307,7 +313,7 @@ function About() {
           </section>
 
           {/* Tips */}
-          <section className="mb-3">
+          <section className="mb-5">
             <h3 className="text-primary mb-3">
               <FaCheckCircle className="me-2" />
               Tips for Best Results
@@ -335,6 +341,85 @@ function About() {
           </section>
         </Container>
       </Container>
+
+      {/* FOOTER ACROSS PORTAL */}
+      <footer className="text-white pt-5 pb-4 px-3" style={{ backgroundColor: '#1a4a7a' }}>
+        <Container>
+          <Row className="gy-4 pb-4 border-bottom" style={{ borderColor: 'rgba(255,255,255,0.15) !important' }}>
+            <Col md={3}>
+              <div className="d-flex align-items-center gap-2 mb-3">
+                <div className="rounded p-2 text-white fw-bold shadow-sm" style={{ backgroundColor: '#00a8a8', fontSize: '13px' }}>
+                  OCR
+                </div>
+                <div>
+                  <div className="small fw-bold">OCR Document Processor</div>
+                  <div className="text-white-50" style={{ fontSize: '11px' }}>Text Extraction System</div>
+                </div>
+              </div>
+              <p className="text-white-50 small leading-relaxed">
+                AI-powered OCR processing for document digitization and text extraction.
+              </p>
+            </Col>
+
+            <Col md={3}>
+              <h6 className="fw-bold mb-3 text-white">Quick Links</h6>
+              <ul className="list-unstyled small text-white-50">
+                <li className="mb-2"><a href="#" className="text-reset text-decoration-none">Home</a></li>
+                <li className="mb-2"><a href="#" className="text-reset text-decoration-none">Upload</a></li>
+                <li className="mb-2"><a href="#" className="text-reset text-decoration-none">Results</a></li>
+              </ul>
+            </Col>
+
+            <Col md={3}>
+              <h6 className="fw-bold mb-3 text-white">Centre for e-Governance</h6>
+              <ul className="list-unstyled small text-white-50">
+                <li className="mb-1">
+                  <a 
+                    href="https://ceg.karnataka.gov.in/en" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-reset text-decoration-none text-info d-flex align-items-center gap-1"
+                  >
+                    <ExternalLinkIcon />
+                    CEG Official Website
+                  </a>
+                </li>
+                <li className="text-white-50">ಇ-ಆಡಳಿತ ಕೇಂದ್ರ</li>
+                <li className="text-white-50" style={{ fontSize: '10px' }}>Government of Karnataka</li>
+              </ul>
+            </Col>
+
+            <Col md={3}>
+              <h6 className="fw-bold mb-3 text-white">Karnataka AI Cell</h6>
+              <ul className="list-unstyled small text-white-50">
+                <li className="mb-1">
+                  <a 
+                    href="https://aicell.karnataka.gov.in/" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-reset text-decoration-none text-info d-flex align-items-center gap-1"
+                  >
+                    <ExternalLinkIcon />
+                    AI Cell Official Website
+                  </a>
+                </li>
+                <li className="text-white-50">ಕರ್ನಾಟಕ ಎಐ ಕೋಶ</li>
+                <li className="text-white-50" style={{ fontSize: '10px' }}>Artificial Intelligence for Governance</li>
+              </ul>
+            </Col>
+          </Row>
+
+          <div className="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3 pt-4 text-white-50 small">
+            <div className="d-flex gap-4">
+              <span className="text-decoration-underline" style={{ cursor: 'pointer' }}>Privacy Policy</span>
+              <span className="text-decoration-underline" style={{ cursor: 'pointer' }}>Terms of Service</span>
+            </div>
+            <div>
+              © 2026 — All rights reserved | Powered by AI & Machine Learning
+            </div>
+          </div>
+        </Container>
+      </footer>
     </div>
   );
 }

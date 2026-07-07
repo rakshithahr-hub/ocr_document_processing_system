@@ -1,0 +1,102 @@
+
+--- Page 1 ---
+AIML, Centre for e-Governance, Government of Karnataka
+Monthly Progress Report
+01-June-2026 to Woy
+GENTRE FOR e-GOVERNANCE 30- June -2026 ae
+e-Enabling Government = ನನ್ನವ =
+| Designation [Intern
+an ಸಾ Studied the existing Face Anti-Spoofing Detection System and planned the integration of
+
+01-06-2026 ot ಜಟ
+real-time liveness verification.
+
+— Implemented live camera access using the WebRTC API (getUsexMedi.a () ) and displayed
+the réal-time video stream in the React application.
+ann, Integrated QpenCV Haar Cascade for face detection and implemented face tracking with
+
+03-06-2026 ee
+
+bounding box overlay.
+ಸಾ Developed the sequential liveness Verification workflow using LEFT and RIGHT head
+04-06-2026 ಸ ಪ ನ ೫
+movement detection based on face X-coordinate charges.
+ಜ್‌ ಜ್‌ Added progress tracking, challenge status indicators, and automatic face capture after
+successful liveness verification.
+ಎ Integrated the liveness verification module with the existing Face Anti-Spoofing Detection
+System and performed functionality testing.
+
+07-06-2026
+Developed the React.js frontend for the OCR Document Processing System with responsive
+user interface using Bootstrap for styling the web application.
+
+ne mn Implemented drag-and-drop document upload, multilingual language selection, and
+
+09-06-2026 in ಗ 114
+document preview functionality.
+
+ಲ nanan Developed real-time OCR progress tracking, extracted text display, confidence score
+
+10-06-2026 ee ae an ae | .
+visualization, and Copy-to-Clipboard functionality.
+
+11-06-2026 Designed and implemented the About page describing OCR technologies and application
+features.
+
+12-06-2026 Developed RESTful APIs using Flask and Flask-CORS and integrated Tesseract OCR and
+
+. " EasyOCR with OCR engine selection.
+
+13-06-2026 276 Saturaday
+
+14-06-2026
+
+ar any Implemented multilingual OCR processing supporting PDF, DOCX, PNG, JPEG, BMP, TIFF,
+
+15-06-2026 |) ಜೀ ಜ್‌ "
+and WebP document formats.
+
+16-06-2026 Leave(Exam)
+
+a ny Added secure file upload with MIME type validation, supported file extension verification,
+
+17-06-2026 hn ಟಟ ಟಟ dna
+and file size validation.
+
+18-06-2026 lroplemented image dimension validation, SHA-256 hash generation, and secure document
+handling features.
+
+Developed OCR result export functionality supporting TXT, PDF, and JSON formats with
+confidence scores and metadata.
+
+20-06-2026 Implemented multi-page document export and improved OCR result management
+features.
+
+21-06-2026
+
+22-06-2026 Performed integration testing of the OCR Document Processing System and resolved
+frontend-backend communication issues.
+
+23-06-2026 Conducted application testing, Ul refinement, and bug fixing for both Face Anti-Spoofing
+and OCR systems.
+
+ror ternal use only a
+
+--- Page 2 ---
+AIMIL, Centre for e-Governance, Government of Karnataka
+Monthly Progress Report
+24-06-2026 Improved application performance and optimized user interface responsiveness across
+different 11060166,
+25-06-2026 Performed final testing and validation of the complete OCR and Face Anti-Spoofing web
+applications.
+26-06-2026 Moharam Day
+27-06-2026 4* Saturday
+28-06-2026
+29-06-2026 Deployed the Face Anti-Spoofing Detection System on Render and verified successful
+deployment.
+30-06-2026 Conducted final deployment testing, fixed deployment issues, and prepared project
+documentation and monthly progress report.
+Intern Project Manager Project Director
+AIML AIML AIML
+Centre for e-Governance Centre for e-Governance Centre for e-Governance
+ಲ್‌ 1]

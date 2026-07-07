@@ -31,45 +31,19 @@ def create_app():
         print("ℹ️ Poppler will use system PATH")
 
     # Enable CORS with comprehensive configuration
-    CORS(app, resources={
-        r"/api/*": {
-            "origins": [
-                "https://ocr-document-processing-system-1.onrender.com",  # Your frontend
-                "https://ocr-document-processing-system.onrender.com",   # Alternative frontend
-                "http://localhost:3000",   # React dev
-                "http://localhost:5173",   # Vite dev
-                "http://localhost:5000",   # Flask itself
-                "http://127.0.0.1:3000",
-                "http://127.0.0.1:5173"
-            ],
-            "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-            "allow_headers": ["Content-Type", "Authorization", "Accept", "Origin"],
-            "expose_headers": ["Content-Type", "Authorization"],
-            "supports_credentials": True,
-            "max_age": 3600  # Cache preflight requests for 1 hour
-        }
-        
-    })
+    CORS(
+    app,
+     origins=[
+        "http://localhost:5173",
+        "http://localhost:5174",
+        "https://ocr-document-processing-system-1.onrender.com"
+    ],
+    allow_headers=["Content-Type", "Authorization"],
+    methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+)
     
     # Optional: Add after_request handler for additional CORS headers
-    @app.after_request
-    def after_request(response):
-        origin = request.headers.get('Origin')
-        allowed_origins = [
-            "https://ocr-document-processing-system-1.onrender.com",
-            "https://ocr-document-processing-system.onrender.com",
-            "http://localhost:3000",
-            "http://localhost:5173",
-            "http://localhost:5000"
-        ]
-        
-        if origin in allowed_origins:
-            response.headers.add('Access-Control-Allow-Origin', origin)
-            response.headers.add('Access-Control-Allow-Credentials', 'true')
-            response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept')
-            response.headers.add('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
-        
-        return response
+    
 
     # Register Blueprints
     app.register_blueprint(health_bp)
@@ -94,6 +68,7 @@ def create_app():
                 "available": POPPLER_PATH is not None or os.system("pdfinfo -v > /dev/null 2>&1") == 0
             }
         })
+    
 
     return app
 

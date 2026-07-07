@@ -1,0 +1,10 @@
+{
+  "text": "--- Page 1 ---\n",
+  "confidence": 0.0,
+  "engine": "paddle",
+  "languages": [
+    "eng",
+    "kan"
+  ],
+  "processing_time": 10.81
+}

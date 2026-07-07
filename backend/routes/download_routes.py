@@ -4,7 +4,7 @@ from controllers.download_controller import DownloadController
 download_bp = Blueprint(
     "download",
     __name__,
-    url_prefix="/api/download"
+    url_prefix="/download"
 )
 
 @download_bp.route("/files", methods=["GET"])

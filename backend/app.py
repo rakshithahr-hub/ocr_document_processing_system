@@ -33,13 +33,11 @@ def create_app():
     # Enable CORS with comprehensive configuration
     CORS(
     app,
-     origins=[
+    origins=[
         "http://localhost:5173",
         "http://localhost:5174",
         "https://ocr-document-processing-system-1.onrender.com"
-    ],
-    allow_headers=["Content-Type", "Authorization"],
-    methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+    ]
 )
     
     # Optional: Add after_request handler for additional CORS headers

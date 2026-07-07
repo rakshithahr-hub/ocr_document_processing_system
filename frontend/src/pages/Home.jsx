@@ -92,7 +92,7 @@ function Home({
 
     const xhr = new XMLHttpRequest();
     xhrRef.current = xhr;
-    xhr.open('POST', 'https://ocr-document-processing-system-2.onrender.com/upload');
+    xhr.open('POST', 'http://127.0.0.1:5000/upload');
     
     xhr.upload.onprogress = (event) => {
       if (event.lengthComputable) {
